@@ -428,28 +428,43 @@ function setupAccordions() {
 }
 
 // --- MOBILE TAB SWITCHING ---
+// --- MOBILE TAB SWITCHING ---
 function switchTab(tab) {
+    // Only work on mobile screens
+    if (window.innerWidth > 768) {
+        return; // Desktop: do nothing, keep split-screen
+    }
+
     const editorEl = document.querySelector('.editor');
     const previewEl = document.querySelector('.preview');
     const btnEditor = document.getElementById('btn-editor');
     const btnPreview = document.getElementById('btn-preview');
+
+    // Safety check
+    if (!editorEl || !previewEl) {
+        console.warn('Editor or Preview element not found');
+        return;
+    }
 
     if (tab === 'editor') {
         // Show Editor, Hide Preview
         editorEl.classList.remove('mobile-hidden');
         previewEl.classList.add('mobile-hidden');
 
-        btnEditor.classList.add('active');
-        btnPreview.classList.remove('active');
-    } else {
+        // Update button states
+        if (btnEditor) btnEditor.classList.add('active');
+        if (btnPreview) btnPreview.classList.remove('active');
+    } else if (tab === 'preview') {
         // Show Preview, Hide Editor
         editorEl.classList.add('mobile-hidden');
         previewEl.classList.remove('mobile-hidden');
 
-        btnEditor.classList.remove('active');
-        btnPreview.classList.add('active');
+        // Update button states
+        if (btnEditor) btnEditor.classList.remove('active');
+        if (btnPreview) btnPreview.classList.add('active');
 
-        updatePreview(); // Ensure fresh render
+        // Ensure preview is up to date
+        updatePreview();
     }
 }
 
@@ -858,21 +873,46 @@ window.addEventListener('resize', applySmartScale);
 init();
 
 // Initial Mobile Check - View Switcher: Default to Editor Mode
-if (window.innerWidth <= 768) {
-    const editor = document.querySelector('.editor');
-    const preview = document.querySelector('.preview');
-    const btnPreview = document.getElementById('btn-preview');
-    const btnEditor = document.getElementById('btn-editor');
-    
-    // Only run if editor exists (not in profile-only mode)
-    if (editor && preview && btnPreview && btnEditor) {
-        // Default to Editor Mode (show editor, hide preview)
-        editor.classList.remove('mobile-hidden');
-        preview.classList.add('mobile-hidden');
-        btnEditor.classList.add('active');
-        btnPreview.classList.remove('active');
+function initializeMobileTabs() {
+    if (window.innerWidth <= 768) {
+        const editor = document.querySelector('.editor');
+        const preview = document.querySelector('.preview');
+        const btnPreview = document.getElementById('btn-preview');
+        const btnEditor = document.getElementById('btn-editor');
+        
+        // Only run if editor exists (not in profile-only mode)
+        if (editor && preview && btnPreview && btnEditor) {
+            // Default to Editor Mode (show editor, hide preview)
+            editor.classList.remove('mobile-hidden');
+            preview.classList.add('mobile-hidden');
+            btnEditor.classList.add('active');
+            btnPreview.classList.remove('active');
+        }
+        
+        // Add click event listeners as backup (in addition to onclick)
+        if (btnEditor) {
+            btnEditor.addEventListener('click', function(e) {
+                e.preventDefault();
+                switchTab('editor');
+            });
+        }
+        
+        if (btnPreview) {
+            btnPreview.addEventListener('click', function(e) {
+                e.preventDefault();
+                switchTab('preview');
+            });
+        }
+        
+        // Apply smart scale on initial load
+        setTimeout(applySmartScale, 100);
     }
-    
-    // Apply smart scale on initial load
-    setTimeout(applySmartScale, 100);
 }
+
+// Run on page load
+initializeMobileTabs();
+
+// Also run on window resize to handle orientation changes
+window.addEventListener('resize', function() {
+    initializeMobileTabs();
+});
