@@ -75,6 +75,7 @@ function loadDemoData() {
 // --- RENDER LINKS WITH NEW UI ---
 function renderLinks() {
     const container = document.getElementById('linksList');
+    if (!container) return; // Skip if editor not present (profile-only mode)
     container.innerHTML = '';
 
     links.forEach((link, index) => {
@@ -321,27 +322,33 @@ function switchTab(tab) {
     }
 }
 
+// Helper function to safely get element value
+function getValue(id, defaultValue = '') {
+    const el = document.getElementById(id);
+    return el ? el.value : defaultValue;
+}
+
 // GENERATE THE TEMPLATE
 function getTemplate() {
     const data = {
-        name: document.getElementById('brandName').value,
-        bio: document.getElementById('brandBio').value,
-        logo: document.getElementById('logoUrl').value,
-        bg1: document.getElementById('colorBg1').value,
-        bg2: document.getElementById('colorBg2').value,
-        btn: document.getElementById('colorBtn').value,
-        btnText: document.getElementById('colorBtnText').value,
-        btnPadY: document.getElementById('btnHeight').value,
-        btnRadius: document.getElementById('btnRadius').value,
+        name: getValue('brandName', 'Taylored Pet Portraits'),
+        bio: getValue('brandBio', 'Custom portraits & helping shelter pets 🐾'),
+        logo: getValue('logoUrl', 'logo.gif'),
+        bg1: getValue('colorBg1', '#E4F3FF'),
+        bg2: getValue('colorBg2', '#E0D6FF'),
+        btn: getValue('colorBtn', '#7DC6FF'),
+        btnText: getValue('colorBtnText', '#ffffff'),
+        btnPadY: getValue('btnHeight', '18'),
+        btnRadius: getValue('btnRadius', '50'),
         // New Contact Data
-        contactName: document.getElementById('contactName').value || 'My Name',
-        contactPhone: document.getElementById('contactPhone').value || '',
-        contactEmail: document.getElementById('contactEmail').value || '',
-        contactTitle: document.getElementById('contactTitle').value || '',
-        contactWebsite: document.getElementById('contactWebsite').value || '',
-        notificationEmail: document.getElementById('notificationEmail').value || 'test@example.com',
+        contactName: getValue('contactName', 'Taylor Strong'),
+        contactPhone: getValue('contactPhone', '555-0123'),
+        contactEmail: getValue('contactEmail', 'hello@taylored.com'),
+        contactTitle: getValue('contactTitle', 'Founder'),
+        contactWebsite: getValue('contactWebsite', 'https://tayloredpetportraits.com'),
+        notificationEmail: getValue('notificationEmail', 'leads@mybrand.com'),
         // Media
-        mediaUrl: document.getElementById('mediaUrl').value || ''
+        mediaUrl: getValue('mediaUrl', '')
     };
 
     const linksHtml = links.map(l => `
@@ -721,11 +728,19 @@ init();
 
 // Initial Mobile Check - View Switcher: Default to Preview Mode
 if (window.innerWidth <= 768) {
-    // Default to Preview Mode (as per requirement)
-    document.querySelector('.editor').classList.add('mobile-hidden');
-    document.querySelector('.preview').classList.remove('mobile-hidden');
-    document.getElementById('btn-preview').classList.add('active');
-    document.getElementById('btn-editor').classList.remove('active');
+    const editor = document.querySelector('.editor');
+    const preview = document.querySelector('.preview');
+    const btnPreview = document.getElementById('btn-preview');
+    const btnEditor = document.getElementById('btn-editor');
+    
+    // Only run if editor exists (not in profile-only mode)
+    if (editor && preview && btnPreview && btnEditor) {
+        // Default to Preview Mode (as per requirement)
+        editor.classList.add('mobile-hidden');
+        preview.classList.remove('mobile-hidden');
+        btnPreview.classList.add('active');
+        btnEditor.classList.remove('active');
+    }
     
     // Apply smart scale on initial load
     setTimeout(applySmartScale, 100);
