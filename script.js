@@ -284,31 +284,52 @@ async function loadProfile() {
             .single();
 
         if (error) {
-            // If no profile exists, create one (onboarding)
-            if (error.code === 'PGRST116') { // No rows returned
-                console.log('No profile found, creating default profile...');
-                await createDefaultProfile(session.user.id);
-                // Retry loading
-                const { data: newData, error: newError } = await supabaseClient
-                    .from('profiles')
-                    .select('*')
-                    .eq('user_id', session.user.id)
-                    .single();
+            // If no profile exists (PGRST116 = no rows returned), create one immediately
+            if (error.code === 'PGRST116') {
+                console.log('No profile found for user, creating default profile...');
+                const createResult = await createDefaultProfile(session.user.id);
                 
-                if (newError || !newData) {
-                    console.log('Error creating profile, using defaults:', newError);
-                    updatePreview();
+                if (createResult.error) {
+                    console.error('Failed to create profile:', createResult.error);
+                    showToast('Error creating your profile. Please try refreshing.', 'fa-exclamation-circle');
                     return;
                 }
                 
-                // Use the newly created profile
+                // Profile created successfully, now load it
+                const { data: newData, error: newError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', session.user.id) // STRICT FILTER: Only this user's profile
+                    .single();
+                
+                if (newError || !newData) {
+                    console.error('Error loading newly created profile:', newError);
+                    showToast('Error loading profile. Please refresh.', 'fa-exclamation-circle');
+                    return;
+                }
+                
+                // Populate with the newly created profile
                 populateProfileData(newData);
                 return;
             }
             
-            // Other errors - use defaults
-            console.log('Error loading profile, using defaults:', error);
-            updatePreview();
+            // Other errors - don't fall back to defaults, show error instead
+            console.error('Error loading profile:', error);
+            showToast('Error loading your profile: ' + (error.message || 'Unknown error'), 'fa-exclamation-circle');
+            return;
+        }
+
+        // Profile found - populate with user's own data
+        if (!data) {
+            console.error('Profile query returned no data');
+            showToast('No profile data found. Please refresh.', 'fa-exclamation-circle');
+            return;
+        }
+
+        // STRICT: Only populate if this profile belongs to the current user
+        if (data.user_id !== session.user.id) {
+            console.error('Profile user_id mismatch! Expected:', session.user.id, 'Got:', data.user_id);
+            showToast('Profile mismatch detected. Please refresh.', 'fa-exclamation-circle');
             return;
         }
 
@@ -316,8 +337,8 @@ async function loadProfile() {
         populateProfileData(data);
     } catch (err) {
         console.error('Error loading profile:', err);
-        // Use defaults on error
-        updatePreview();
+        // Don't fall back to defaults - show error instead
+        showToast('Error loading profile: ' + (err.message || 'Unknown error'), 'fa-exclamation-circle');
     }
 }
 
