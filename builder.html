@@ -233,18 +233,16 @@
                     return;
                 }
                 
-                // Force initial state: Show Editor, Hide Preview
-                editorEl.style.display = 'flex';
-                previewEl.style.display = 'none';
+                // Force initial state: Show Editor, Hide Preview (add body class)
+                document.body.classList.add('mobile-editing-active');
                 
                 // Editor button click - Show Editor, Hide Preview
                 btnEditor.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Force display styles
-                    editorEl.style.display = 'flex';
-                    previewEl.style.display = 'none';
+                    // Add body class to trigger CSS rules
+                    document.body.classList.add('mobile-editing-active');
                     
                     // Update button states
                     btnEditor.classList.add('active');
@@ -259,9 +257,8 @@
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Force display styles
-                    editorEl.style.display = 'none';
-                    previewEl.style.display = 'flex';
+                    // Remove body class to trigger CSS rules
+                    document.body.classList.remove('mobile-editing-active');
                     
                     // Update button states
                     btnEditor.classList.remove('active');

@@ -818,3 +818,45 @@ body {
         max-height: 100%;
     }
 }
+
+/* --- MOBILE BODY CLASS TOGGLE (Nuclear Option) --- */
+/* These rules use body class to override all other CSS with maximum specificity */
+@media (max-width: 768px) {
+    /* Default: Hide editor, show preview */
+    .editor {
+        display: none !important;
+    }
+    
+    .preview {
+        display: flex !important;
+    }
+    
+    /* When body has mobile-editing-active class: Show editor, hide preview */
+    body.mobile-editing-active .editor {
+        display: flex !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: calc(100vh - 70px) !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 10 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+    
+    body.mobile-editing-active .preview {
+        display: none !important;
+    }
+    
+    /* Ensure Editor button looks active when editing */
+    body.mobile-editing-active #btn-editor {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    body.mobile-editing-active #btn-preview {
+        color: #9ca3af !important;
+        background: none !important;
+    }
+}
