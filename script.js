@@ -20,8 +20,139 @@ const ICON_LIBRARY = [
 // Init
 function init() {
     renderLinks();
-    updatePreview();
+    
+    // Check if we're on the profile page (index.html) - load from Supabase
+    const isProfilePage = document.querySelector('.preview.profile-only');
+    if (isProfilePage) {
+        loadProfile();
+    } else {
+        // Builder page - load from Supabase or use defaults
+        loadProfile();
+        updatePreview();
+    }
+    
     setupAccordions();
+}
+
+// --- SUPABASE FUNCTIONS ---
+
+// Get all profile data as an object
+function getProfileData() {
+    return {
+        name: getValue('brandName', 'Taylored Pet Portraits'),
+        bio: getValue('brandBio', 'Custom portraits & helping shelter pets 🐾'),
+        logo: getValue('logoUrl', 'logo.gif'),
+        bg1: getValue('colorBg1', '#E4F3FF'),
+        bg2: getValue('colorBg2', '#E0D6FF'),
+        btn: getValue('colorBtn', '#7DC6FF'),
+        btnText: getValue('colorBtnText', '#ffffff'),
+        btnPadY: getValue('btnHeight', '18'),
+        btnRadius: getValue('btnRadius', '50'),
+        contactName: getValue('contactName', 'Taylor Strong'),
+        contactPhone: getValue('contactPhone', '555-0123'),
+        contactEmail: getValue('contactEmail', 'hello@taylored.com'),
+        contactTitle: getValue('contactTitle', 'Founder'),
+        contactWebsite: getValue('contactWebsite', 'https://tayloredpetportraits.com'),
+        notificationEmail: getValue('notificationEmail', 'leads@mybrand.com'),
+        mediaUrl: getValue('mediaUrl', ''),
+        links: links // Array of link objects
+    };
+}
+
+// Save profile to Supabase
+async function saveProfile() {
+    try {
+        // Ensure Supabase client is available
+        if (typeof supabaseClient === 'undefined') {
+            showToast('Supabase client not loaded. Please refresh the page.', 'fa-exclamation-circle');
+            return;
+        }
+
+        const profileData = getProfileData();
+        
+        // UPSERT to Supabase (using id = 1 as default profile)
+        const { data, error } = await supabaseClient
+            .from('profiles')
+            .upsert({
+                id: 1, // Default profile ID
+                ...profileData,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'id'
+            });
+
+        if (error) {
+            console.error('Error saving profile:', error);
+            showToast('Error saving profile: ' + error.message, 'fa-exclamation-circle');
+            return;
+        }
+
+        showToast('Profile saved successfully!', 'fa-check-circle');
+    } catch (err) {
+        console.error('Error saving profile:', err);
+        showToast('Error saving profile', 'fa-exclamation-circle');
+    }
+}
+
+// Load profile from Supabase
+async function loadProfile() {
+    try {
+        // Check if Supabase client is available
+        if (typeof supabaseClient === 'undefined') {
+            console.log('Supabase client not loaded, using defaults');
+            updatePreview();
+            return;
+        }
+
+        // SELECT from Supabase (using id = 1 as default profile)
+        const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', 1)
+            .single();
+
+        if (error) {
+            // If no profile exists yet, use defaults
+            console.log('No profile found, using defaults:', error);
+            updatePreview();
+            return;
+        }
+
+        if (data) {
+            // Populate form fields if they exist (builder page)
+            if (document.getElementById('brandName')) {
+                document.getElementById('brandName').value = data.name || '';
+                document.getElementById('brandBio').value = data.bio || '';
+                document.getElementById('logoUrl').value = data.logo || '';
+                document.getElementById('colorBg1').value = data.bg1 || '#E4F3FF';
+                document.getElementById('colorBg2').value = data.bg2 || '#E0D6FF';
+                document.getElementById('colorBtn').value = data.btn || '#7DC6FF';
+                document.getElementById('colorBtnText').value = data.btnText || '#ffffff';
+                document.getElementById('btnHeight').value = data.btnPadY || '18';
+                document.getElementById('btnRadius').value = data.btnRadius || '50';
+                document.getElementById('contactName').value = data.contactName || '';
+                document.getElementById('contactPhone').value = data.contactPhone || '';
+                document.getElementById('contactEmail').value = data.contactEmail || '';
+                document.getElementById('contactTitle').value = data.contactTitle || '';
+                document.getElementById('contactWebsite').value = data.contactWebsite || '';
+                document.getElementById('notificationEmail').value = data.notificationEmail || '';
+                document.getElementById('mediaUrl').value = data.mediaUrl || '';
+            }
+
+            // Load links if they exist
+            if (data.links && Array.isArray(data.links)) {
+                links = data.links;
+                renderLinks();
+            }
+
+            // Update preview
+            updatePreview();
+        }
+    } catch (err) {
+        console.error('Error loading profile:', err);
+        // Use defaults on error
+        updatePreview();
+    }
 }
 
 // --- LOAD DEMO DATA ---
