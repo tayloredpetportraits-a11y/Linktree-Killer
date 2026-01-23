@@ -99,24 +99,19 @@
 
     <script>
         // ==========================================
-        // 🔑 KEYS GO HERE (CRITICAL STEP)
+        // 🔑 KEYS GO HERE 
         // ==========================================
-        // Go to Supabase -> Settings -> API.
-        // Copy "Project URL" -> Paste below.
-        // Copy "anon public" Key -> Paste below.
-
         const SUPABASE_URL = 'https://qxkicdhsrlpehgcsapsh.supabase.co';
         const SUPABASE_KEY = 'sb_secret_lfG0LhFnbv2CBALRiHj34A_WJyrReUA';
-
         // ==========================================
 
-        // 1. Initialize
-        let supabase;
+        // 1. Initialize (RENAMED to 'sbClient' to fix the error)
+        let sbClient;
         try {
             if (SUPABASE_URL.includes('PASTE')) {
                 alert("🚨 STOP! You forgot to paste your keys in the code!");
             } else {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log("✅ Supabase Connected!");
             }
         } catch (e) {
@@ -171,7 +166,7 @@
             if (btn) btn.innerHTML = 'Saving...';
 
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user } } = await sbClient.auth.getUser(); // Using new name
                 if (!user) throw new Error("No user logged in!");
 
                 const updates = {
@@ -182,7 +177,7 @@
                     updated_at: new Date()
                 };
 
-                const { error } = await supabase.from('profiles').upsert(updates);
+                const { error } = await sbClient.from('profiles').upsert(updates);
                 if (error) throw error;
 
                 showToast('Changes Saved Successfully!');
@@ -200,10 +195,10 @@
         // 4. Load Logic
         async function loadProfile() {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user } } = await sbClient.auth.getUser();
                 if (!user) return window.location.href = 'index.html';
 
-                const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+                const { data } = await sbClient.from('profiles').select('*').eq('id', user.id).single();
 
                 if (data) {
                     if (data.title) document.getElementById('businessName').value = data.title;
@@ -233,7 +228,7 @@
 
         // 6. Logout
         async function logOut() {
-            await supabase.auth.signOut();
+            await sbClient.auth.signOut();
             window.location.href = 'index.html';
         }
 
