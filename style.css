@@ -1186,3 +1186,340 @@ body {
     align-items: center;
     justify-content: space-between;
 }
+
+/* ============================================
+   PREMIUM DESIGNER STUDIO THEME (Builder Only)
+   ============================================ */
+
+/* Dark animated gradient background (only for builder pages) */
+body.builder-page {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #1e293b 75%, #0f172a 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animated gradient background */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Subtle animated particles overlay */
+body.builder-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+    animation: particleFloat 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes particleFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+    50% { transform: translate(20px, -20px) scale(1.1); opacity: 0.8; }
+}
+
+/* Glassmorphism Sidebar */
+body.builder-page .editor {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-radius: 0 24px 24px 0;
+    animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 10;
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Editor Header - Glassmorphic */
+body.builder-page .editor-header {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 24px 0 0;
+}
+
+body.builder-page .editor-header h2 {
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.builder-page .editor-header i {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Rounded inputs and cards */
+body.builder-page .controls {
+    background: transparent;
+}
+
+body.builder-page .control-group {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    transition: all 0.3s ease;
+}
+
+body.builder-page .control-group:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+body.builder-page .input-row input,
+body.builder-page .input-row textarea,
+body.builder-page .input-row select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.95);
+    transition: all 0.3s ease;
+}
+
+body.builder-page .input-row input:focus,
+body.builder-page .input-row textarea:focus,
+body.builder-page .input-row select:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    transform: translateY(-1px);
+}
+
+body.builder-page .input-row label {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+/* Premium Preview Area */
+body.builder-page .preview {
+    background: transparent;
+    background-image: none;
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    position: relative;
+    z-index: 5;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 3D Levitating Phone */
+body.builder-page .phone-mockup {
+    box-shadow: 
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 60px 120px -20px rgba(0, 0, 0, 0.6),
+        0 40px 80px -30px rgba(0, 0, 0, 0.5),
+        0 20px 40px -10px rgba(99, 102, 241, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: phoneFloat 3s ease-in-out infinite;
+    transform-style: preserve-3d;
+    border-color: rgba(31, 41, 55, 0.9);
+}
+
+@keyframes phoneFloat {
+    0%, 100% {
+        transform: translateY(0px) rotateX(0deg);
+    }
+    50% {
+        transform: translateY(-10px) rotateX(2deg);
+    }
+}
+
+body.builder-page .phone-mockup::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: glowPulse 3s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+    50% { opacity: 0.6; transform: translateX(-50%) scale(1.2); }
+}
+
+/* Hover Effects - Buttons */
+body.builder-page button,
+body.builder-page .demo-btn,
+body.builder-page .ai-magic-btn,
+body.builder-page .icon-preview-btn {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+body.builder-page button:hover,
+body.builder-page .demo-btn:hover,
+body.builder-page .ai-magic-btn:hover,
+body.builder-page .icon-preview-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(99, 102, 241, 0.4);
+    filter: brightness(1.1);
+}
+
+body.builder-page button:active,
+body.builder-page .demo-btn:active,
+body.builder-page .ai-magic-btn:active {
+    transform: translateY(0);
+}
+
+/* Hover Effects - Inputs */
+body.builder-page input:hover,
+body.builder-page textarea:hover,
+body.builder-page select:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Smooth transitions for all interactive elements */
+body.builder-page * {
+    transition: all 0.3s ease;
+}
+
+body.builder-page button,
+body.builder-page input,
+body.builder-page textarea,
+body.builder-page select,
+body.builder-page .control-group,
+body.builder-page .accordion-header {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Accordion headers with glow on hover */
+body.builder-page .accordion-header {
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: var(--spacing-md);
+    transition: all 0.3s ease;
+}
+
+body.builder-page .accordion-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+body.builder-page .accordion-header h3 {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+body.builder-page .accordion-icon {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Demo section styling */
+body.builder-page .demo-section {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0;
+}
+
+/* AI Magic Card - Enhanced for dark theme */
+body.builder-page .ai-magic-card {
+    box-shadow: 
+        0 8px 32px rgba(102, 126, 234, 0.4),
+        0 0 40px rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.builder-page .ai-magic-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 12px 40px rgba(102, 126, 234, 0.5),
+        0 0 60px rgba(102, 126, 234, 0.3);
+}
+
+/* Logout button styling */
+body.builder-page .logout-btn {
+    background: rgba(239, 68, 68, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+body.builder-page .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Link items styling */
+body.builder-page .link-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+body.builder-page .link-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar styling for dark theme */
+body.builder-page .controls::-webkit-scrollbar {
+    width: 8px;
+}
+
+body.builder-page .controls::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+body.builder-page .controls::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+body.builder-page .controls::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
