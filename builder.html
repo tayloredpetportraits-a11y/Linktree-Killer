@@ -17,20 +17,20 @@
         <div class="auth-modal-content">
             <h2><i class="fa-solid fa-lock"></i> Login Required</h2>
             <p>Please sign in to access the builder</p>
-            
+
             <div id="authError" class="auth-error" style="display: none;"></div>
-            
+
             <form id="authForm" onsubmit="handleAuth(event)">
                 <div class="auth-input-group">
                     <label>Email</label>
                     <input type="email" id="authEmail" required placeholder="your@email.com">
                 </div>
-                
+
                 <div class="auth-input-group">
                     <label>Password</label>
                     <input type="password" id="authPassword" required placeholder="••••••••">
                 </div>
-                
+
                 <div class="auth-buttons">
                     <button type="submit" class="auth-btn auth-btn-primary" id="authSubmitBtn">
                         <i class="fa-solid fa-sign-in-alt"></i> Sign In
@@ -51,40 +51,35 @@
             </button>
         </div>
 
-        <!-- ✨ AI Auto-Build Section - Main Action at Top -->
+        <!-- Top: AI Magic Import -->
         <div class="ai-auto-build-section">
             <div class="ai-auto-build-header">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                 <h3>✨ AI Magic Import</h3>
             </div>
-            <p class="ai-auto-build-subtitle">Paste your Instagram or Website URL and AI will create your profile instantly</p>
+            <p class="ai-auto-build-subtitle">Paste your Instagram or Website URL and AI will create your profile
+                instantly</p>
             <div class="ai-auto-build-input-group">
-                <input 
-                    type="url" 
-                    id="aiImportUrl" 
-                    placeholder="Paste your Instagram or Website URL..." 
-                    class="ai-auto-build-input"
-                >
-                <button 
-                    id="aiMagicBtn" 
-                    class="ai-auto-build-btn" 
-                    onclick="aiMagicImport()"
-                >
+                <input type="url" id="aiImportUrl" placeholder="Paste your Instagram or Website URL..."
+                    class="ai-auto-build-input">
+                <button id="aiMagicBtn" class="ai-auto-build-btn" onclick="runAiImport()">
                     <span class="btn-text"><i class="fa-solid fa-rocket"></i> Auto-Build Profile</span>
-                    <span class="btn-loading" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> 👨‍🍳 Let it cook...</span>
+                    <span class="btn-loading" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> 👨‍🍳
+                        Let it cook...</span>
                     <span class="btn-success" style="display: none;"><i class="fa-solid fa-check"></i> Done!</span>
                 </button>
             </div>
         </div>
 
+        <!-- Middle: Branding & Controls -->
         <div class="controls">
 
             <div class="control-group">
-                <div class="accordion-header">
+                <div class="accordion-header open">
                     <h3>Branding</h3>
                     <i class="fa-solid fa-chevron-down accordion-icon"></i>
                 </div>
-                <div class="accordion-content">
+                <div class="accordion-content open">
                     <div class="input-row">
                         <label>Business Name</label>
                         <input type="text" id="brandName" value="Taylored Pet Portraits" oninput="updatePreview()"
@@ -231,6 +226,7 @@
 
         </div>
 
+        <!-- Bottom: Save Changes -->
         <div class="editor-footer">
             <button class="download-btn" onclick="saveProfile()">
                 <i class="fa-solid fa-save"></i> Save Changes
@@ -267,7 +263,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabaseClient.js"></script>
     <script src="script.js"></script>
-    
+
     <!-- Brute Force Mobile Tab Switching -->
     <script>
         (function() {

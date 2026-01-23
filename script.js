@@ -437,8 +437,8 @@ async function createDefaultProfile(userId) {
     }
 }
 
-// --- AI MAGIC IMPORT ---
-async function aiMagicImport() {
+// --- AI IMPORT LOGIC (Updated) ---
+async function runAiImport() {
     const urlInput = document.getElementById('aiImportUrl');
     const url = urlInput?.value?.trim();
     
@@ -447,19 +447,18 @@ async function aiMagicImport() {
         return;
     }
     
-    // Show loading state - toggle button text/loading states
+    // Show loading state - '👨🍳 Let it cook...'
     const importBtn = document.getElementById('aiMagicBtn');
     const btnText = importBtn?.querySelector('.btn-text');
     const btnLoading = importBtn?.querySelector('.btn-loading');
+    const btnSuccess = importBtn?.querySelector('.btn-success');
     
     if (importBtn && btnText && btnLoading) {
         importBtn.disabled = true;
         btnText.style.display = 'none';
         btnLoading.style.display = 'flex';
-    } else if (importBtn) {
-        // Fallback for old button structure
-        importBtn.disabled = true;
-        importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+        // Ensure success matches hidden state initially
+        if(btnSuccess) btnSuccess.style.display = 'none';
     }
     
     try {
@@ -480,24 +479,33 @@ async function aiMagicImport() {
         
         const data = result.data;
         
-        // Populate form fields
+        // Populate Business Name and Bio (Branding)
         if (document.getElementById('brandName')) {
             document.getElementById('brandName').value = data.name || '';
-        }
-        if (document.getElementById('brandBio')) {
-            document.getElementById('brandBio').value = data.bio || '';
-        }
-        if (document.getElementById('colorBg1')) {
-            document.getElementById('colorBg1').value = data.bg1 || '#3b82f6';
-        }
-        if (document.getElementById('colorBg2')) {
-            document.getElementById('colorBg2').value = data.bg2 || '#2563eb';
-        }
-        if (document.getElementById('colorBtn')) {
-            document.getElementById('colorBtn').value = data.btn || '#1d4ed8';
+            // Trigger input event to update preview
+            document.getElementById('brandName').dispatchEvent(new Event('input', { bubbles: true }));
         }
         
-        // Update links array
+        if (document.getElementById('brandBio')) {
+            document.getElementById('brandBio').value = data.bio || '';
+            document.getElementById('brandBio').dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        
+        // Also populate other fields if available in the response, to be helpful (colors, etc)
+        if (data.bg1 && document.getElementById('colorBg1')) {
+            document.getElementById('colorBg1').value = data.bg1;
+            document.getElementById('colorBg1').dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (data.bg2 && document.getElementById('colorBg2')) {
+            document.getElementById('colorBg2').value = data.bg2;
+            document.getElementById('colorBg2').dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (data.btn && document.getElementById('colorBtn')) {
+            document.getElementById('colorBtn').value = data.btn;
+            document.getElementById('colorBtn').dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        
+        // Update links if returned
         if (data.links && Array.isArray(data.links) && data.links.length > 0) {
             links = data.links.map(link => ({
                 label: link.label || 'New Link',
@@ -505,60 +513,40 @@ async function aiMagicImport() {
                 icon: link.icon || 'fa-link'
             }));
             renderLinks();
+            updatePreview();
         }
-        
-        // Trigger input events to update preview
-        document.getElementById('brandName')?.dispatchEvent(new Event('input', { bubbles: true }));
-        document.getElementById('brandBio')?.dispatchEvent(new Event('input', { bubbles: true }));
-        document.getElementById('colorBg1')?.dispatchEvent(new Event('input', { bubbles: true }));
-        document.getElementById('colorBg2')?.dispatchEvent(new Event('input', { bubbles: true }));
-        document.getElementById('colorBtn')?.dispatchEvent(new Event('input', { bubbles: true }));
-        
-        updatePreview();
         
         showToast('✨ AI Magic Import Complete!', 'fa-wand-magic-sparkles');
         
         // Clear the input
         if (urlInput) urlInput.value = '';
         
-        // Show "Done!" for 2 seconds, then reset
-        const importBtn = document.getElementById('aiMagicBtn');
-        const btnText = importBtn?.querySelector('.btn-text');
-        const btnLoading = importBtn?.querySelector('.btn-loading');
-        const btnSuccess = importBtn?.querySelector('.btn-success');
-        
+        // Show "Done!" for 2 seconds
         if (importBtn && btnText && btnLoading && btnSuccess) {
-            // Hide loading, show success
             btnLoading.style.display = 'none';
             btnSuccess.style.display = 'flex';
             
-            // After 2 seconds, reset to original state
             setTimeout(() => {
                 btnSuccess.style.display = 'none';
                 btnText.style.display = 'flex';
                 importBtn.disabled = false;
             }, 2000);
+        } else if (importBtn) {
+            importBtn.disabled = false;
         }
         
     } catch (error) {
         console.error('AI Import Error:', error);
         showToast('AI Import failed: ' + (error.message || 'Unknown error'), 'fa-exclamation-circle');
         
-        // Restore button state on error
-        const importBtn = document.getElementById('aiMagicBtn');
-        const btnText = importBtn?.querySelector('.btn-text');
-        const btnLoading = importBtn?.querySelector('.btn-loading');
-        const btnSuccess = importBtn?.querySelector('.btn-success');
-        
+        // Restore button state
         if (importBtn && btnText && btnLoading && btnSuccess) {
             btnLoading.style.display = 'none';
             btnSuccess.style.display = 'none';
             btnText.style.display = 'flex';
             importBtn.disabled = false;
         } else if (importBtn) {
-            // Fallback for old button structure
             importBtn.disabled = false;
-            importBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Auto-Build Profile';
         }
     }
 }
