@@ -51,24 +51,32 @@
             </button>
         </div>
 
+        <!-- Premium AI Magic Import Card -->
+        <div class="ai-magic-card">
+            <div class="ai-magic-header">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <h3>✨ AI Magic Import</h3>
+            </div>
+            <p class="ai-magic-subtitle">Paste your Instagram or Website URL and watch AI build your profile instantly</p>
+            <div class="ai-magic-input-group">
+                <input 
+                    type="url" 
+                    id="aiImportUrl" 
+                    placeholder="Paste your Instagram or Website URL..." 
+                    class="ai-magic-input"
+                >
+                <button 
+                    id="aiMagicBtn" 
+                    class="ai-magic-btn" 
+                    onclick="aiMagicImport()"
+                >
+                    <i class="fa-solid fa-rocket"></i> Auto-Build Profile
+                </button>
+            </div>
+        </div>
+
         <div class="demo-section">
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <!-- AI Magic Import -->
-                <div style="display: flex; gap: 8px;">
-                    <input 
-                        type="url" 
-                        id="aiImportUrl" 
-                        placeholder="Paste website URL (e.g. example.com)" 
-                        style="flex: 1; padding: 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-size: 0.9rem;"
-                    >
-                    <button 
-                        class="demo-btn" 
-                        onclick="aiMagicImport()"
-                        style="min-width: auto; padding: 12px 20px; white-space: nowrap;"
-                    >
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> AI Import
-                    </button>
-                </div>
                 <!-- Demo Data Button -->
                 <button class="demo-btn" onclick="loadDemoData()">
                     <i class="fa-solid fa-rocket"></i> Load Demo Data

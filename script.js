@@ -437,14 +437,12 @@ async function aiMagicImport() {
         return;
     }
     
-    // Show loading state - find the AI Import button
-    const importBtn = Array.from(document.querySelectorAll('button')).find(
-        btn => btn.textContent.includes('AI Import') || btn.innerHTML.includes('wand-magic-sparkles')
-    );
-    const originalHTML = importBtn?.innerHTML || '<i class="fa-solid fa-wand-magic-sparkles"></i> AI Import';
+    // Show loading state - find the AI Magic Import button
+    const importBtn = document.getElementById('aiMagicBtn');
+    const originalHTML = importBtn?.innerHTML || '<i class="fa-solid fa-rocket"></i> Auto-Build Profile';
     if (importBtn) {
         importBtn.disabled = true;
-        importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...';
+        importBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing your brand...';
     }
     
     try {
