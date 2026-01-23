@@ -3,147 +3,87 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taylored Pet Portraits</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Nuclear Full-Screen Override - Removes All Containers -->
+
     <style>
-        /* Force everything to be full screen - no boxes, no centering */
-        html, body {
-            width: 100vw !important;
-            min-height: 100vh !important;
-            max-width: 100vw !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow-x: hidden !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            position: static !important;
-        }
-        
-        body, #app, #profile-content {
-            width: 100vw !important;
-            min-height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            background-color: transparent !important;
-        }
-        
-        /* Make iframe fill entire screen directly */
-        #profile-content {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            z-index: 1 !important;
-        }
-        
-        #profile-content iframe {
-            width: 100vw !important;
-            height: 100vh !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            display: block !important;
-        }
-        
-        /* Hide any preview/phone-mockup wrappers that might exist */
-        .preview, .preview-wrapper, .phone-mockup {
-            display: none !important;
-        }
-        
-        /* Ensure box-sizing doesn't cause issues */
-        * {
-            box-sizing: border-box !important;
+        body {
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
 
-<body>
-    <!-- Profile Preview Only - No Editor - Simplified Structure -->
-    <div id="profile-content">
-        <iframe id="previewFrame"></iframe>
+<body class="bg-indigo-50 text-slate-900 min-h-screen flex flex-col items-center py-12 px-4">
+
+    <div class="w-full max-w-md text-center">
+
+        <div class="relative mx-auto w-24 h-24 mb-4">
+            <div
+                class="w-24 h-24 bg-white rounded-full shadow-xl flex items-center justify-center overflow-hidden border-4 border-white">
+                <i class="fa-solid fa-dog text-4xl text-indigo-500"></i>
+            </div>
+        </div>
+
+        <h1 id="profile-title" class="text-2xl font-extrabold mb-2 text-slate-900">
+            Loading...
+        </h1>
+        <p id="profile-bio" class="text-slate-600 mb-8 leading-relaxed">
+            Fetching your profile...
+        </p>
+
+        <div class="space-y-4">
+            <a href="#"
+                class="block bg-white hover:bg-indigo-50 border border-slate-200 text-slate-800 font-semibold py-4 px-6 rounded-xl shadow-sm transition-all hover:scale-[1.02]">
+                🐶 Book a Portrait
+            </a>
+            <a href="#"
+                class="block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transition-all hover:scale-[1.02]">
+                ❤️ Support Shelter Pets
+            </a>
+        </div>
+
+        <a href="builder.html"
+            class="fixed bottom-5 right-5 opacity-20 hover:opacity-100 text-xs bg-black text-white px-2 py-1 rounded">
+            ⚙️ Admin
+        </a>
     </div>
 
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabaseClient.js"></script>
-    <script src="script.js"></script>
-    
-    <!-- Nuclear Full-Screen Override - Loads Last to Override Everything -->
-    <style>
-        /* Force everything to be full screen - no boxes, no centering */
-        html, body {
-            width: 100vw !important;
-            min-height: 100vh !important;
-            max-width: 100vw !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow-x: hidden !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            position: static !important;
+    <script>
+        // 👇 PASTE YOUR KEYS HERE 👇
+        const SUPABASE_URL = 'https://qxkicdhsrlpehgcsapsh.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_TTBR0ES-pM7LOWDsywEy7A_9BSlhWGg';
+        // 👆 PASTE YOUR KEYS HERE 👆
+
+        const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loadContent() {
+            // 1. Check who is the latest user or get a specific ID (For now, we get the first match)
+            // Ideally, you'd pull by username, but let's just pull *your* saved row.
+            
+            const { data, error } = await sbClient
+                .from('profiles')
+                .select('*')
+                .order('updated_at', { ascending: false }) // Get the most recently saved one
+                .limit(1)
+                .single();
+
+            if (data) {
+                // 2. UPDATE THE PAGE
+                document.getElementById('profile-title').innerText = data.title || "No Title Yet";
+                document.getElementById('profile-bio').innerText = data.description || "No Bio Yet";
+            } else {
+                console.error("No profile found", error);
+                document.getElementById('profile-title').innerText = "Welcome!";
+                document.getElementById('profile-bio').innerText = "Create your profile in the builder.";
+            }
         }
-        
-        body, #app, #profile-content {
-            width: 100vw !important;
-            min-height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            background-color: transparent !important;
-        }
-        
-        /* Make iframe fill entire screen directly */
-        #profile-content {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            z-index: 1 !important;
-        }
-        
-        #profile-content iframe {
-            width: 100vw !important;
-            height: 100vh !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: none !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            display: block !important;
-        }
-        
-        /* Hide any preview/phone-mockup wrappers that might exist */
-        .preview, .preview-wrapper, .phone-mockup {
-            display: none !important;
-        }
-        
-        /* Ensure box-sizing doesn't cause issues */
-        * {
-            box-sizing: border-box !important;
-        }
-    </style>
+
+        loadContent();
+    </script>
 </body>
 
 </html>
