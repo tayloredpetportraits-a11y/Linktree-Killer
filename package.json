@@ -6,7 +6,7 @@
   "main": "index.html",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'No build step required'"
+    "build": "mkdir -p public && cp *.html *.css *.js *.gif public/"
   },
   "dependencies": {
     "openai": "^4.20.0",
