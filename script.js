@@ -240,10 +240,12 @@ async function saveProfile() {
         const profileData = getProfileData();
         
         // UPSERT to Supabase using id (UUID primary key matching auth.users.id)
+        // Also include user_id for compatibility (it mirrors id)
         const { data, error } = await supabaseClient
             .from('profiles')
             .upsert({
                 id: session.user.id, // Use authenticated user's UUID as primary key
+                user_id: session.user.id, // Also set user_id (mirrors id for compatibility)
                 ...profileData,
                 updated_at: new Date().toISOString()
             }, {
@@ -391,6 +393,7 @@ async function createDefaultProfile(userId) {
         
         const defaultProfile = {
             id: userId, // Use UUID as primary key (matching auth.users.id)
+            user_id: userId, // Also set user_id (mirrors id for compatibility)
             name: uniqueName, // Unique name to avoid any conflicts
             bio: 'Welcome to your link page! 🎉',
             logo: 'logo.gif',
