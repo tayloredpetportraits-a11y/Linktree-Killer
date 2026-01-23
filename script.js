@@ -518,19 +518,44 @@ async function aiMagicImport() {
         // Clear the input
         if (urlInput) urlInput.value = '';
         
-    } catch (error) {
-        console.error('AI Import Error:', error);
-        showToast('AI Import failed: ' + (error.message || 'Unknown error'), 'fa-exclamation-circle');
-    } finally {
-        // Restore button state
+        // Show "Done!" for 2 seconds, then reset
         const importBtn = document.getElementById('aiMagicBtn');
         const btnText = importBtn?.querySelector('.btn-text');
         const btnLoading = importBtn?.querySelector('.btn-loading');
+        const btnSuccess = importBtn?.querySelector('.btn-success');
         
-        if (importBtn && btnText && btnLoading) {
-            importBtn.disabled = false;
-            btnText.style.display = 'flex';
+        if (importBtn && btnText && btnLoading && btnSuccess) {
+            // Hide loading, show success
             btnLoading.style.display = 'none';
+            btnSuccess.style.display = 'flex';
+            
+            // After 2 seconds, reset to original state
+            setTimeout(() => {
+                btnSuccess.style.display = 'none';
+                btnText.style.display = 'flex';
+                importBtn.disabled = false;
+            }, 2000);
+        }
+        
+    } catch (error) {
+        console.error('AI Import Error:', error);
+        showToast('AI Import failed: ' + (error.message || 'Unknown error'), 'fa-exclamation-circle');
+        
+        // Restore button state on error
+        const importBtn = document.getElementById('aiMagicBtn');
+        const btnText = importBtn?.querySelector('.btn-text');
+        const btnLoading = importBtn?.querySelector('.btn-loading');
+        const btnSuccess = importBtn?.querySelector('.btn-success');
+        
+        if (importBtn && btnText && btnLoading && btnSuccess) {
+            btnLoading.style.display = 'none';
+            btnSuccess.style.display = 'none';
+            btnText.style.display = 'flex';
+            importBtn.disabled = false;
+        } else if (importBtn) {
+            // Fallback for old button structure
+            importBtn.disabled = false;
+            importBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Auto-Build Profile';
         }
     }
 }

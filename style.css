@@ -269,7 +269,8 @@ body:has(.preview.profile-only) .mobile-nav {
 }
 
 .ai-auto-build-btn .btn-text,
-.ai-auto-build-btn .btn-loading {
+.ai-auto-build-btn .btn-loading,
+.ai-auto-build-btn .btn-success {
     display: flex;
     align-items: center;
     gap: 8px;
