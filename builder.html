@@ -9,19 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script>
-        // 👇👇👇 PASTE YOUR KEYS INSIDE THE QUOTES BELOW 👇👇👇
-        const SUPABASE_URL = 'https://qxkicdhsrlpehgcsapsh.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_TTBR0ES-pM7LOWDsywEy7A_9BSlhWGg';
-        // 👆👆👆 DO NOT FORGET THIS STEP 👆👆👆
-
-        // Initialize connection immediately
-        if (typeof supabase !== 'undefined') {
-            window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("✅ Supabase connected!");
-        }
-    </script>
-
     <style>
         body {
             background: #0f172a;
@@ -34,6 +21,7 @@
             backdrop-filter: blur(10px);
         }
 
+        /* Floating Phone Animation */
         #phone-preview {
             box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
             transition: all 0.3s;
@@ -98,7 +86,6 @@
     <div class="flex-1 flex items-center justify-center bg-gray-900 relative">
         <div class="absolute inset-0 opacity-20"
             style="background-image: radial-gradient(#4f46e5 1px, transparent 1px); background-size: 20px 20px;"></div>
-
         <div id="phone-preview"
             class="w-[375px] h-[720px] bg-black rounded-[40px] border-[8px] border-gray-800 overflow-hidden relative">
             <iframe id="preview-frame" src="index.html" class="w-full h-full bg-white"></iframe>
@@ -111,7 +98,144 @@
         <div class="text-sm font-bold" id="toast-message">Changes Saved!</div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // 👇👇👇 PASTE KEYS HERE - DO NOT SKIP 👇👇👇
+        const SUPABASE_URL = 'https://qxkicdhsrlpehgcsapsh.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_TTBR0ES-pM7LOWDsywEy7A_9BSlhWGg';
+        // 👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆👆
+
+        // 1. Initialize Supabase
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("✅ Supabase Connected!");
+        } catch (e) {
+            alert("🚨 Critical Error: Could not connect to Supabase. Check your keys!");
+        }
+
+        // 2. 🤖 AI Logic
+        async function runAiImport() {
+            const input = document.getElementById('ai-url-input');
+            const btn = document.getElementById('ai-generate-btn');
+            const url = input.value;
+
+            console.log("🖱️ Button Clicked! URL:", url); // Debug Check
+
+            if (!url) return showToast("Please paste a URL first!", "error");
+
+            // UI Feedback
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 👨🍳 Let it cook...';
+            btn.disabled = true;
+
+            try {
+                // Call API
+                const res = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await res.json();
+                console.log("🤖 AI Result:", data);
+
+                if (data.error) throw new Error(data.error);
+
+                // Update Inputs
+                if (data.title) document.getElementById('businessName').value = data.title;
+                if (data.description) document.getElementById('businessBio').value = data.description;
+
+                showToast("Profile generated! Saving...");
+                btn.innerHTML = "✅ Done!";
+
+                // Save immediately
+                await saveProfile();
+
+            } catch (e) {
+                console.error("AI Error:", e);
+                showToast("AI Error: " + e.message, "error");
+            } finally {
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }
+        }
+
+        // 3. 💾 Save Logic
+        async function saveProfile() {
+            const btn = document.querySelector('button[onclick="saveProfile()"]');
+            if (btn) btn.innerHTML = 'Saving...';
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error("No user logged in!");
+
+                const updates = {
+                    id: user.id,
+                    user_id: user.id,
+                    title: document.getElementById('businessName').value,
+                    description: document.getElementById('businessBio').value,
+                    updated_at: new Date()
+                };
+
+                const { error } = await supabase.from('profiles').upsert(updates);
+                if (error) throw error;
+
+                showToast('Changes Saved Successfully!');
+                document.getElementById('preview-frame').contentWindow.location.reload();
+
+            } catch (error) {
+                console.error('Save Error:', error);
+                showToast('Save Failed: ' + error.message, 'error');
+            } finally {
+                if (btn) btn.innerHTML = '💾 Save Changes';
+            }
+        }
+
+        // 4. 🏗️ Load Logic
+        async function loadProfile() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return window.location.href = 'index.html';
+
+                const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+
+                if (data) {
+                    if (data.title) document.getElementById('businessName').value = data.title;
+                    if (data.description) document.getElementById('businessBio').value = data.description;
+                }
+            } catch (error) {
+                console.error('Load Error:', error);
+            }
+        }
+
+        // 5. 🍞 Toast UI
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toast-message');
+            const icon = document.getElementById('toast-icon');
+
+            msg.innerText = message;
+            if (type === 'error') {
+                icon.innerHTML = '<i class="fa-solid fa-circle-exclamation text-red-500"></i>';
+            } else {
+                icon.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i>';
+            }
+
+            toast.classList.remove('translate-y-32');
+            setTimeout(() => toast.classList.add('translate-y-32'), 3000);
+        }
+
+        // 6. 🚪 Logout
+        async function logOut() {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // Start!
+        window.onload = loadProfile;
+    </script>
 </body>
 
 </html>
