@@ -141,6 +141,8 @@ async function checkAuth() {
 }
 
 // Sign up new user
+// NOTE: Profile creation is handled automatically by the SQL trigger (create_profile_for_new_user)
+// We do NOT create a profile manually here to avoid duplicate key errors
 async function signUp(email, password) {
     try {
         if (typeof supabaseClient === 'undefined') {
@@ -150,6 +152,9 @@ async function signUp(email, password) {
             email: email,
             password: password
         });
+        
+        // Success! The SQL trigger will automatically create the profile
+        // We don't need to do anything else here
         return { data, error };
     } catch (err) {
         console.error('Sign up error:', err);
@@ -234,15 +239,15 @@ async function saveProfile() {
 
         const profileData = getProfileData();
         
-        // UPSERT to Supabase using user_id
+        // UPSERT to Supabase using id (UUID primary key matching auth.users.id)
         const { data, error } = await supabaseClient
             .from('profiles')
             .upsert({
-                user_id: session.user.id, // Use authenticated user's ID
+                id: session.user.id, // Use authenticated user's UUID as primary key
                 ...profileData,
                 updated_at: new Date().toISOString()
             }, {
-                onConflict: 'user_id'
+                onConflict: 'id' // Conflict on id (UUID primary key)
             });
 
         if (error) {
@@ -276,11 +281,11 @@ async function loadProfile() {
             return;
         }
 
-        // SELECT from Supabase using user_id
+        // SELECT from Supabase using id (UUID primary key matching auth.users.id)
         const { data, error } = await supabaseClient
             .from('profiles')
             .select('*')
-            .eq('user_id', session.user.id)
+            .eq('id', session.user.id) // Use id (UUID) instead of user_id
             .single();
 
         if (error) {
@@ -299,7 +304,7 @@ async function loadProfile() {
                 const { data: newData, error: newError } = await supabaseClient
                     .from('profiles')
                     .select('*')
-                    .eq('user_id', session.user.id) // STRICT FILTER: Only this user's profile
+                    .eq('id', session.user.id) // STRICT FILTER: Only this user's profile (id is UUID primary key)
                     .single();
                 
                 if (newError || !newData) {
@@ -327,8 +332,8 @@ async function loadProfile() {
         }
 
         // STRICT: Only populate if this profile belongs to the current user
-        if (data.user_id !== session.user.id) {
-            console.error('Profile user_id mismatch! Expected:', session.user.id, 'Got:', data.user_id);
+        if (data.id !== session.user.id) {
+            console.error('Profile id mismatch! Expected:', session.user.id, 'Got:', data.id);
             showToast('Profile mismatch detected. Please refresh.', 'fa-exclamation-circle');
             return;
         }
@@ -376,14 +381,16 @@ function populateProfileData(data) {
     updatePreview();
 }
 
-// Create default profile for new user (onboarding)
+// Create default profile for new user (onboarding fallback)
+// NOTE: This is a fallback. The SQL trigger should automatically create profiles on signup.
+// This function is only called if the trigger somehow didn't run or failed.
 async function createDefaultProfile(userId) {
     try {
         // Generate unique name using timestamp to avoid conflicts
-        const uniqueName = 'My Link Page ' + Date.now();
+        const uniqueName = 'My Link Page ' + new Date().toISOString().split('T')[0];
         
         const defaultProfile = {
-            user_id: userId, // This is unique per user (UUID from auth)
+            id: userId, // Use UUID as primary key (matching auth.users.id)
             name: uniqueName, // Unique name to avoid any conflicts
             bio: 'Welcome to your link page! 🎉',
             logo: 'logo.gif',
@@ -410,7 +417,7 @@ async function createDefaultProfile(userId) {
         const { data, error } = await supabaseClient
             .from('profiles')
             .upsert([defaultProfile], {
-                onConflict: 'user_id' // If profile exists, update it; otherwise create
+                onConflict: 'id' // If profile exists, update it; otherwise create (id is UUID primary key)
             })
             .select()
             .single();
