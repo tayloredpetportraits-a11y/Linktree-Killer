@@ -1,9 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
+    // DEBUG: Hardcoded keys to ensure Builder works immediately
     return createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        'https://qxkicdhsrlpehgcsapsh.supabase.co',
+        'sb_publishable_TTBR0ES-pM7LOWDsywEy7A_9BSlhWGg'
     )
 }
 
