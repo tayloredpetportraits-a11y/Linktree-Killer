@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 
 // 1. Setup Supabase for Server Component
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

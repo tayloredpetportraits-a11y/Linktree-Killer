@@ -34,6 +34,9 @@ interface ProfileData {
     video_url: string
     social_spotlight_url: string  // NEW: Instagram/TikTok URL
     showcase: { before: string; after: string }  // NEW: Before/After Slider
+    page_views?: number  // NEW: Total page views counter
+    fb_pixel_id?: string  // NEW: Facebook Pixel ID
+    google_analytics_id?: string  // NEW: Google Analytics GA4 ID
     links: Link[]
     gallery_images: string[]
 }
@@ -66,6 +69,9 @@ export default function BuilderPage() {
         video_url: '',
         social_spotlight_url: '',
         showcase: { before: '', after: '' },
+        page_views: 0,
+        fb_pixel_id: '',
+        google_analytics_id: '',
         links: [],
         gallery_images: []
     })
@@ -105,14 +111,14 @@ export default function BuilderPage() {
             if (error && error.code !== 'PGRST116') throw error
 
             if (data) {
-                // Fix: Spread the data and cast it to ProfileData to satisfy Vercel
+                // We use 'as ProfileData' to tell TypeScript to trust us
                 setProfile({
                     ...data,
-                    // Ensure nested JSON objects have defaults if they are null
+                    // Set defaults for complex objects to prevent crashes
                     showcase: data.showcase || { before: '', after: '' },
-                    links: data.links || [],
-                    gallery_images: data.gallery_images || []
-                } as ProfileData)
+                    styles: data.styles || [],
+                    gallery: data.gallery || [],
+                } as ProfileData);
             }
         } catch (error) {
             console.error('Load profile error:', error)
@@ -290,6 +296,26 @@ export default function BuilderPage() {
                                 <i className="fa-solid fa-arrow-right-from-bracket mr-1"></i>
                                 Log Out
                             </button>
+                        </div>
+                    </div>
+
+                    {/* Stats Card - Page Views */}
+                    <div className="px-6 pt-4">
+                        <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-md border border-blue-500/20 rounded-xl p-4 shadow-lg">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                        <i className="fa-solid fa-eye text-blue-400 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Total Views</p>
+                                        <p className="text-2xl font-bold text-white">{profile.page_views?.toLocaleString() || 0}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-gray-500">Unique sessions</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -878,6 +904,54 @@ export default function BuilderPage() {
                                     />
                                     <p className="text-xs text-gray-500 mt-1">
                                         Customize the heading for your newsletter signup block
+                                    </p>
+                                </div>
+                            </div>
+                        </details>
+
+                        {/* Analytics Section - NEW! */}
+                        <details className="border-b border-white/10 pb-4 mb-4">
+                            <summary className="cursor-pointer font-bold text-xs text-gray-500 uppercase tracking-wider py-3 flex justify-between items-center hover:text-gray-300 transition">
+                                <span className="flex items-center gap-2">
+                                    <i className="fa-solid fa-chart-line text-green-400"></i>
+                                    Analytics
+                                </span>
+                                <i className="fa-solid fa-chevron-down text-xs"></i>
+                            </summary>
+                            <div className="space-y-4 pl-1 mt-3">
+                                <p className="text-xs text-gray-400 mb-3">
+                                    Connect your tracking pixels to analyze visitor behavior and run retargeting campaigns.
+                                </p>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-300 block mb-1">
+                                        <i className="fa-brands fa-facebook text-blue-500 mr-1"></i>
+                                        Facebook Pixel ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={profile.fb_pixel_id || ''}
+                                        onChange={(e) => setProfile({ ...profile, fb_pixel_id: e.target.value })}
+                                        placeholder="123456789012345"
+                                        className="w-full p-2.5 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Find this in your Facebook Events Manager
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-gray-300 block mb-1">
+                                        <i className="fa-brands fa-google text-red-500 mr-1"></i>
+                                        Google Analytics ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={profile.google_analytics_id || ''}
+                                        onChange={(e) => setProfile({ ...profile, google_analytics_id: e.target.value })}
+                                        placeholder="G-XXXXXXXXXX"
+                                        className="w-full p-2.5 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        GA4 Measurement ID (starts with "G-")
                                     </p>
                                 </div>
                             </div>
