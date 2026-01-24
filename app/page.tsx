@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const TARGET_USERNAME = 'taylor';
 
-// 1. Disable caching so updates show instantly
-export const revalidate = 0;
+// 1. Force dynamic rendering for SSR
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
     const supabase = createClient(
