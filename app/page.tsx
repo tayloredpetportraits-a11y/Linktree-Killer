@@ -69,7 +69,7 @@ export default async function Home() {
                 </div>
 
                 {/* Newsletter (If you turned it on in Builder) */}
-                {profile.newsletter_active && (
+                {profile.newsletter_enabled && (
                     <div className={`mb-8 mx-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center shadow-lg ${profile.newsletter_size === 'large' ? 'p-8' : 'p-5'}`}>
                         <h3 className="font-bold mb-3 text-lg">{profile.newsletter_heading || "Join my list"}</h3>
                         <form className="flex flex-col gap-2">
