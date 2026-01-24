@@ -105,28 +105,14 @@ export default function BuilderPage() {
             if (error && error.code !== 'PGRST116') throw error
 
             if (data) {
+                // Fix: Spread the data and cast it to ProfileData to satisfy Vercel
                 setProfile({
-                    title: data.title || '',
-                    description: data.description || '',
-                    avatar_url: data.avatar_url || '',
-                    background_image: data.background_image || '',
-                    background_type: data.background_type || 'mesh',
-                    video_background_url: data.video_background_url || '',
-                    font_style: data.font_style || 'modern',
-                    theme_color: data.theme_color || '#3b82f6',
-                    accent_color: data.accent_color || '#8b5cf6',
-                    animation_speed: data.animation_speed || 'medium',
-                    animation_type: data.animation_type || 'drift',
-                    texture_overlay: data.texture_overlay || 'none',
-                    enable_spotlight: data.enable_spotlight || false,
-                    contact_email: data.contact_email || '',
-                    lead_gen_enabled: data.lead_gen_enabled || false,
-                    video_url: data.video_url || '',
-                    social_spotlight_url: data.social_spotlight_url || '',
+                    ...data,
+                    // Ensure nested JSON objects have defaults if they are null
                     showcase: data.showcase || { before: '', after: '' },
                     links: data.links || [],
                     gallery_images: data.gallery_images || []
-                })
+                } as ProfileData)
             }
         } catch (error) {
             console.error('Load profile error:', error)
