@@ -18,7 +18,12 @@ export default async function Home() {
         .eq('username', TARGET_USERNAME)
         .single();
 
-    if (!profile) return <div className="p-10 text-white">User not found</div>;
+    console.log(`[Linktree Killer] Loading profile for: ${TARGET_USERNAME}`);
+
+    if (!profile) {
+        console.error(`[Linktree Killer] Profile not found for: ${TARGET_USERNAME}`);
+        return <div className="p-10 text-white font-bold text-xl">System Online: User '${TARGET_USERNAME}' not found in DB.</div>;
+    }
 
     // 3. Render the UI
     return (
