@@ -111,13 +111,16 @@ export default function BuilderPage() {
             if (error && error.code !== 'PGRST116') throw error
 
             if (data) {
-                // We use 'as ProfileData' to tell TypeScript to trust us
+                // FIX: Spread all data and cast it to ProfileData to stop the Type Error
                 setProfile({
                     ...data,
-                    // Set defaults for complex objects to prevent crashes
+                    // Provide defaults for nested objects so the app doesn't crash if they are empty
                     showcase: data.showcase || { before: '', after: '' },
                     styles: data.styles || [],
                     gallery: data.gallery || [],
+                    // Ensure new fields have defaults if missing
+                    newsletter_active: data.newsletter_active || false,
+                    newsletter_size: data.newsletter_size || 'medium',
                 } as ProfileData);
             }
         } catch (error) {

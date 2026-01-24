@@ -59,6 +59,13 @@ export default async function PublicProfile({ params }: Props) {
 
     return (
         <div className="min-h-screen w-full relative overflow-hidden text-white">
+            {/* Analytics Tracker - Invisible, handles page views and pixel injection */}
+            <AnalyticsTracker
+                profileId={profile.id}
+                fbPixel={profile.fb_pixel_id}
+                googleAnalytics={profile.google_analytics_id}
+            />
+
             {/* 1. Background Layer */}
             <BackgroundLayer profile={profile} />
 
