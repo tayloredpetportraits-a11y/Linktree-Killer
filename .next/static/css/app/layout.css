@@ -1344,6 +1344,9 @@ video {
 .pt-4 {
   padding-top: 1rem;
 }
+.pt-20 {
+  padding-top: 5rem;
+}
 .text-center {
   text-align: center;
 }
