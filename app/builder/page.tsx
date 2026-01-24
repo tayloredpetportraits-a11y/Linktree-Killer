@@ -31,6 +31,7 @@ interface ProfileData {
     lead_gen_enabled: boolean
     newsletter_active: boolean  // NEW: Newsletter signup block enabled
     newsletter_heading: string  // NEW: Newsletter heading text
+    newsletter_size: 'small' | 'medium' | 'large'  // NEW: Newsletter size control
     video_url: string
     social_spotlight_url: string  // NEW: Instagram/TikTok URL
     showcase: { before: string; after: string }  // NEW: Before/After Slider
