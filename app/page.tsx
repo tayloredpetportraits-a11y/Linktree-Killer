@@ -6,24 +6,41 @@ const TARGET_USERNAME = 'taylor';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
+    // DEBUG: Hardcoded keys to rule out Vercel Env Var issues
     const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        'https://qxkicdhsrlpehgcsapsh.supabase.co',
+        'sb_publishable_TTBR0ES-pM7LOWDsywEy7A_9BSlhWGg'
     );
 
+    console.log(`[Linktree Killer] Connecting to DB for user: ${TARGET_USERNAME}`);
+
     // 2. Fetch the profile directly (No redirect)
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('username', TARGET_USERNAME)
         .single();
 
-    console.log(`[Linktree Killer] Loading profile for: ${TARGET_USERNAME}`);
+    if (error) {
+        console.error('[Linktree Killer] DB Error:', error);
+        return (
+            <div className="min-h-screen bg-black text-red-500 p-10 font-mono">
+                <h1 className="text-2xl font-bold mb-4">Database Connection Error</h1>
+                <pre>{JSON.stringify(error, null, 2)}</pre>
+            </div>
+        );
+    }
 
     if (!profile) {
         console.error(`[Linktree Killer] Profile not found for: ${TARGET_USERNAME}`);
-        return <div className="p-10 text-white font-bold text-xl">System Online: User '${TARGET_USERNAME}' not found in DB.</div>;
+        return (
+            <div className="min-h-screen bg-black text-white p-10 font-bold text-xl">
+                System Online: User '{TARGET_USERNAME}' not found in DB.
+            </div>
+        );
     }
+
+    console.log(`[Linktree Killer] Success! Loading profile: ${profile.title}`);
 
     // 3. Render the UI
     return (
