@@ -69,4 +69,4 @@ async function testScrape(url) {
 }
 
 // Run test
-testScrape('https://github.com/supabase');
+testScrape('https://tayloredpetportraits.com');

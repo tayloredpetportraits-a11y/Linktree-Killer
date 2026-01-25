@@ -27,7 +27,7 @@ async function init() {
         // Profile page - load from Supabase (public access)
         loadProfile();
     }
-    
+
     renderLinks();
     setupAccordions();
 }
@@ -38,9 +38,9 @@ async function checkAuthAndShowBuilder() {
     const editor = document.querySelector('.editor');
     const preview = document.querySelector('.preview');
     const logoutBtn = document.getElementById('logoutBtn');
-    
+
     const { user, error } = await checkAuth();
-    
+
     if (!user) {
         // Not logged in - show auth modal, hide builder
         if (authModal) authModal.style.display = 'flex';
@@ -49,12 +49,12 @@ async function checkAuthAndShowBuilder() {
         if (logoutBtn) logoutBtn.style.display = 'none';
         return;
     }
-    
+
     // Logged in - hide auth modal, show builder
     if (authModal) authModal.style.display = 'none';
     if (editor) editor.style.display = 'flex';
     if (logoutBtn) logoutBtn.style.display = 'block';
-    
+
     // Load user's profile
     await loadProfile();
     updatePreview();
@@ -67,7 +67,7 @@ function toggleAuthMode() {
     isSignUpMode = !isSignUpMode;
     const submitBtn = document.getElementById('authSubmitBtn');
     const toggleBtn = document.querySelector('.auth-btn-secondary');
-    
+
     if (isSignUpMode) {
         submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Sign Up';
         toggleBtn.innerHTML = '<i class="fa-solid fa-sign-in-alt"></i> Sign In Instead';
@@ -79,18 +79,18 @@ function toggleAuthMode() {
 
 async function handleAuth(event) {
     event.preventDefault();
-    
+
     const email = document.getElementById('authEmail').value;
     const password = document.getElementById('authPassword').value;
     const errorDiv = document.getElementById('authError');
     const submitBtn = document.getElementById('authSubmitBtn');
     const originalHTML = submitBtn.innerHTML;
-    
+
     // Clear previous errors
     errorDiv.style.display = 'none';
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-    
+
     try {
         let result;
         if (isSignUpMode) {
@@ -98,7 +98,7 @@ async function handleAuth(event) {
         } else {
             result = await signIn(email, password);
         }
-        
+
         if (result.error) {
             errorDiv.textContent = result.error.message || 'Authentication failed';
             errorDiv.style.display = 'block';
@@ -106,7 +106,7 @@ async function handleAuth(event) {
             submitBtn.innerHTML = originalHTML;
             return;
         }
-        
+
         // Success - reload to show builder
         window.location.reload();
     } catch (err) {
@@ -152,7 +152,7 @@ async function signUp(email, password) {
             email: email,
             password: password
         });
-        
+
         // Success! The SQL trigger will automatically create the profile
         // We don't need to do anything else here
         return { data, error };
@@ -238,7 +238,7 @@ async function saveProfile() {
         }
 
         const profileData = getProfileData();
-        
+
         // UPSERT to Supabase using id (UUID primary key matching auth.users.id)
         // Also include user_id for compatibility (it mirrors id)
         const { data, error } = await supabaseClient
@@ -295,31 +295,31 @@ async function loadProfile() {
             if (error.code === 'PGRST116') {
                 console.log('No profile found for user, creating default profile...');
                 const createResult = await createDefaultProfile(session.user.id);
-                
+
                 if (createResult.error) {
                     console.error('Failed to create profile:', createResult.error);
                     showToast('Error creating your profile. Please try refreshing.', 'fa-exclamation-circle');
                     return;
                 }
-                
+
                 // Profile created successfully, now load it
                 const { data: newData, error: newError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id) // STRICT FILTER: Only this user's profile (id is UUID primary key)
                     .single();
-                
+
                 if (newError || !newData) {
                     console.error('Error loading newly created profile:', newError);
                     showToast('Error loading profile. Please refresh.', 'fa-exclamation-circle');
                     return;
                 }
-                
+
                 // Populate with the newly created profile
                 populateProfileData(newData);
                 return;
             }
-            
+
             // Other errors - don't fall back to defaults, show error instead
             console.error('Error loading profile:', error);
             showToast('Error loading your profile: ' + (error.message || 'Unknown error'), 'fa-exclamation-circle');
@@ -352,7 +352,7 @@ async function loadProfile() {
 // Helper function to populate profile data into form
 function populateProfileData(data) {
     if (!data) return;
-    
+
     // Populate form fields if they exist (builder page)
     if (document.getElementById('brandName')) {
         document.getElementById('brandName').value = data.name || '';
@@ -390,7 +390,7 @@ async function createDefaultProfile(userId) {
     try {
         // Generate unique name using timestamp to avoid conflicts
         const uniqueName = 'My Link Page ' + new Date().toISOString().split('T')[0];
-        
+
         const defaultProfile = {
             id: userId, // Use UUID as primary key (matching auth.users.id)
             user_id: userId, // Also set user_id (mirrors id for compatibility)
@@ -437,61 +437,168 @@ async function createDefaultProfile(userId) {
     }
 }
 
-// --- AI IMPORT LOGIC (Updated) ---
-async function runAiImport() {
+// --- SYSTEM OVERRIDE: LET HIM COOK ---
+let cookInterval;
+
+function initCookSystem() {
+    if (!document.getElementById('vibe-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'vibe-overlay';
+        overlay.innerHTML = `
+            <div class="cook-text">👨‍🍳 LET HIM COOK...</div>
+            <div class="vibe-log" id="vibeLog">Initializing protocol...</div>
+        `;
+        document.body.appendChild(overlay);
+    }
+}
+
+function startVibeLoader() {
+    initCookSystem();
+    const overlay = document.getElementById('vibe-overlay');
+    const log = document.getElementById('vibeLog');
+    const cookText = document.querySelector('.cook-text');
+    overlay.classList.add('active');
+
+    // VIBE PROTOCOL CONFIG
+    const OPENER = "Initializing Taylored AI Solutions Protocol...";
+    const COOK_PHASE = [
+        "🔥 LET HIM COOK...",
+        "🎨 YOINKING THE HEX CODES...",
+        "👀 LOOKING RESPECTFULLY...",
+        "🧬 STEALING BRAND DNA...",
+        "📂 DECRYPTING ASSETS...",
+        "💎 INJECTING THE VIBE..."
+    ];
+    const FINISHER = "✅ ACCESS GRANTED.";
+
+    let step = 0;
+    const maxSteps = 8;
+
+    // Reset
+    log.innerHTML = `> ${OPENER}`;
+
+    cookInterval = setInterval(() => {
+        let msg = "";
+
+        if (step === 0) {
+            msg = OPENER;
+        } else if (step < maxSteps - 1) {
+            msg = COOK_PHASE[Math.floor(Math.random() * COOK_PHASE.length)];
+        } else {
+            msg = FINISHER;
+        }
+
+        log.innerHTML = `> ${msg}`;
+
+        // Random glitch effect on text
+        cookText.style.transform = `scale(${0.98 + Math.random() * 0.04})`;
+
+        step++;
+
+        // Note: The caller (fetchBrandData or loadDemoData) stops this interval manually via stopVibeLoader()
+        // But visually, we want it to sit on "ACCESS GRANTED" if it runs long.
+        if (step >= maxSteps) {
+            log.innerHTML = `> ${FINISHER}`;
+        }
+
+    }, 600);
+}
+
+function stopVibeLoader() {
+    clearInterval(cookInterval);
+    const overlay = document.getElementById('vibe-overlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+function triggerBentoReveal() {
+    // Select the "groups" (cards) in the editor to animate
+    // We treat .input-rows inside the editor as cards
+    const editor = document.querySelector('.editor');
+    if (!editor) return;
+
+    const cards = Array.from(editor.querySelectorAll('.input-row, .control-group'));
+
+    // Reset state
+    cards.forEach(card => {
+        card.classList.remove('bento-snap', 'shazam', 'delay-100', 'delay-200', 'delay-300', 'delay-400');
+        void card.offsetWidth; // Force reflow
+        card.classList.add('bento-snap');
+    });
+
+    // Stagger
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('shazam');
+        }, index * 100); // 100ms stagger
+    });
+}
+
+// --- AI IMPORT LOGIC (Deep Scrape Protocol) ---
+// Updated to "fetchBrandData" as per System Upgrade
+async function fetchBrandData() {
     const urlInput = document.getElementById('aiImportUrl');
     const url = urlInput?.value?.trim();
-    
+
     if (!url) {
         showToast('Please enter a website URL', 'fa-exclamation-circle');
         return;
     }
-    
-    // Show loading state - '👨🍳 Let it cook...'
-    const importBtn = document.getElementById('aiMagicBtn');
-    const btnText = importBtn?.querySelector('.btn-text');
-    const btnLoading = importBtn?.querySelector('.btn-loading');
-    const btnSuccess = importBtn?.querySelector('.btn-success');
-    
-    if (importBtn && btnText && btnLoading) {
-        importBtn.disabled = true;
-        btnText.style.display = 'none';
-        btnLoading.style.display = 'flex';
-        // Ensure success matches hidden state initially
-        if(btnSuccess) btnSuccess.style.display = 'none';
-    }
-    
+
+    // UI Loading State (OVERRIDE: Vibe Loader)
+    startVibeLoader();
+
     try {
-        // Call the API endpoint
         const response = await fetch('/api/generate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url: url })
         });
-        
+
         const result = await response.json();
-        
+
         if (!response.ok || !result.success) {
             throw new Error(result.error || 'Failed to generate profile');
         }
-        
+
         const data = result.data;
-        
-        // Populate Business Name and Bio (Branding)
+
+        // 1. AUTO-COPYWRITING (The Voice)
         if (document.getElementById('brandName')) {
             document.getElementById('brandName').value = data.name || '';
-            // Trigger input event to update preview
             document.getElementById('brandName').dispatchEvent(new Event('input', { bubbles: true }));
         }
-        
+
         if (document.getElementById('brandBio')) {
+            // Use slogan if available, else bio
             document.getElementById('brandBio').value = data.bio || '';
             document.getElementById('brandBio').dispatchEvent(new Event('input', { bubbles: true }));
         }
-        
-        // Also populate other fields if available in the response, to be helpful (colors, etc)
+
+        // 2. INTELLIGENT TYPOGRAPHY (The Look)
+        let fontInput = document.getElementById('fontStyle');
+        if (!fontInput) {
+            fontInput = document.createElement('input');
+            fontInput.type = 'hidden';
+            fontInput.id = 'fontStyle';
+            document.querySelector('.editor')?.appendChild(fontInput);
+            if (!fontInput.parentElement) document.body.appendChild(fontInput);
+        }
+
+        const fontMap = {
+            'luxury': 'serif',
+            'modern': 'sans',
+            'playful': 'round',
+            'tech': 'mono'
+        };
+        const detectedStyle = data.fontStyle || 'modern';
+        const theme = fontMap[detectedStyle] || 'sans';
+
+        fontInput.value = theme;
+        fontInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // 3. EXPANDED PALETTE (The Aesthetics)
         if (data.bg1 && document.getElementById('colorBg1')) {
             document.getElementById('colorBg1').value = data.bg1;
             document.getElementById('colorBg1').dispatchEvent(new Event('input', { bubbles: true }));
@@ -504,8 +611,8 @@ async function runAiImport() {
             document.getElementById('colorBtn').value = data.btn;
             document.getElementById('colorBtn').dispatchEvent(new Event('input', { bubbles: true }));
         }
-        
-        // Update links if returned
+
+        // 4. SOCIAL DETECTIVE (The Connections)
         if (data.links && Array.isArray(data.links) && data.links.length > 0) {
             links = data.links.map(link => ({
                 label: link.label || 'New Link',
@@ -513,90 +620,149 @@ async function runAiImport() {
                 icon: link.icon || 'fa-link'
             }));
             renderLinks();
-            updatePreview();
         }
-        
-        showToast('✨ AI Magic Import Complete!', 'fa-wand-magic-sparkles');
-        
-        // Clear the input
+
+        updatePreview();
+
+        // STOP LOADER & REVEAL
+        stopVibeLoader();
+
+        console.log("🛑 STOPPING ANIMATION");
+        console.log("🚀 REVEALING DASHBOARD");
+
+        const loadingSection = document.getElementById('loading-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+
+        // Force Hide Loading
+        if (loadingSection) {
+            loadingSection.style.display = 'none';
+            loadingSection.classList.add('hidden');
+        }
+
+        // Force Show Dashboard
+        if (dashboardSection) {
+            dashboardSection.style.display = 'block';
+            dashboardSection.classList.remove('hidden');
+
+            // Force scroll to top
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        } else {
+            console.error("❌ ERROR: #dashboard-section not found! Check your HTML IDs.");
+        }
+
+        triggerBentoReveal();
+
+        showToast('✨ Deep Scrape Complete!', 'fa-wand-magic-sparkles');
+
         if (urlInput) urlInput.value = '';
-        
-        // Show "Done!" for 2 seconds
-        if (importBtn && btnText && btnLoading && btnSuccess) {
-            btnLoading.style.display = 'none';
-            btnSuccess.style.display = 'flex';
-            
-            setTimeout(() => {
-                btnSuccess.style.display = 'none';
-                btnText.style.display = 'flex';
-                importBtn.disabled = false;
-            }, 2000);
-        } else if (importBtn) {
-            importBtn.disabled = false;
-        }
-        
+
     } catch (error) {
-        console.error('AI Import Error:', error);
-        showToast('AI Import failed: ' + (error.message || 'Unknown error'), 'fa-exclamation-circle');
-        
-        // Restore button state
-        if (importBtn && btnText && btnLoading && btnSuccess) {
-            btnLoading.style.display = 'none';
-            btnSuccess.style.display = 'none';
-            btnText.style.display = 'flex';
-            importBtn.disabled = false;
-        } else if (importBtn) {
-            importBtn.disabled = false;
-        }
+        stopVibeLoader();
+        console.error('Import Error:', error);
+        showToast('Import failed: ' + (error.message || 'Error'), 'fa-exclamation-circle');
     }
 }
 
+// Backward compatibility alias if needed by HTML
+const runAiImport = fetchBrandData;
+
 // --- LOAD DEMO DATA ---
 function loadDemoData() {
-    // Set Branding
-    const brandName = document.getElementById('brandName');
-    const brandBio = document.getElementById('brandBio');
-    const logoUrl = document.getElementById('logoUrl');
-    
-    brandName.value = 'Denton Sandwich Co.';
-    brandBio.value = 'The best sandwiches at Lucky Lou\'s. 🥪🐶';
-    logoUrl.value = 'https://images.unsplash.com/photo-1553909489-cf47ac912433?w=400&h=400&fit=crop';
-    
-    // Trigger input events to ensure preview updates
-    brandName.dispatchEvent(new Event('input', { bubbles: true }));
-    brandBio.dispatchEvent(new Event('input', { bubbles: true }));
-    logoUrl.dispatchEvent(new Event('input', { bubbles: true }));
-    
-    // Set Colors - Food Truck Red theme
-    const colorBg1 = document.getElementById('colorBg1');
-    const colorBg2 = document.getElementById('colorBg2');
-    const colorBtn = document.getElementById('colorBtn');
-    const colorBtnText = document.getElementById('colorBtnText');
-    
-    colorBg1.value = '#D9381E';
-    colorBg2.value = '#D9381E';
-    colorBtn.value = '#D9381E';
-    colorBtnText.value = '#FFFFFF';
-    
-    // Trigger input events for color inputs
-    colorBg1.dispatchEvent(new Event('input', { bubbles: true }));
-    colorBg2.dispatchEvent(new Event('input', { bubbles: true }));
-    colorBtn.dispatchEvent(new Event('input', { bubbles: true }));
-    colorBtnText.dispatchEvent(new Event('input', { bubbles: true }));
-    
-    // Replace links with demo links
-    links = [
-        { label: 'View Menu', url: 'https://example.com/menu', icon: 'fa-book' },
-        { label: 'Order Online', url: 'https://example.com/order', icon: 'fa-cart-shopping' },
-        { label: 'Leave a Review', url: 'https://example.com/review', icon: 'fa-star' }
-    ];
-    
-    // Re-render everything
-    renderLinks();
-    updatePreview();
-    
-    // Show success toast
-    showToast('Demo data loaded! 🥪', 'fa-rocket');
+    // UI Override: Let Him Cook
+    startVibeLoader();
+
+    // Simulate Network Delay (2.5s for maximum vibe)
+    setTimeout(() => {
+        // Set Branding
+        const brandName = document.getElementById('brandName');
+        const brandBio = document.getElementById('brandBio');
+        const logoUrl = document.getElementById('logoUrl');
+
+        brandName.value = 'Denton Sandwich Co.';
+        brandBio.value = 'Hand-crafted sandwiches. Luxury taste. 🥪✨'; // Demo Auto-Copywriting vibe
+        logoUrl.value = 'https://images.unsplash.com/photo-1553909489-cf47ac912433?w=400&h=400&fit=crop';
+
+        // Trigger input events
+        brandName.dispatchEvent(new Event('input', { bubbles: true }));
+        brandBio.dispatchEvent(new Event('input', { bubbles: true }));
+        logoUrl.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Set Theme/Typography (Demo: Luxury Serif)
+        let fontInput = document.getElementById('fontStyle');
+        if (!fontInput) {
+            fontInput = document.createElement('input');
+            fontInput.type = 'hidden';
+            fontInput.id = 'fontStyle';
+            document.querySelector('.editor')?.appendChild(fontInput);
+        }
+        fontInput.value = 'serif';
+        fontInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Set Colors - "Deli Luxury" theme
+        const colorBg1 = document.getElementById('colorBg1');
+        const colorBg2 = document.getElementById('colorBg2');
+        const colorBtn = document.getElementById('colorBtn');
+        const colorBtnText = document.getElementById('colorBtnText');
+
+        colorBg1.value = '#fff0e6'; // Warm light
+        colorBg2.value = '#ffffff';
+        colorBtn.value = '#d9381e'; // Deep red
+        colorBtnText.value = '#FFFFFF';
+
+        // Trigger input events
+        colorBg1.dispatchEvent(new Event('input', { bubbles: true }));
+        colorBg2.dispatchEvent(new Event('input', { bubbles: true }));
+        colorBtn.dispatchEvent(new Event('input', { bubbles: true }));
+        colorBtnText.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Replace links with demo links including Socials
+        links = [
+            { label: 'Our Menu', url: 'https://example.com/menu', icon: 'fa-book' },
+            { label: 'Order Online', url: 'https://example.com/order', icon: 'fa-cart-shopping' },
+            { label: 'Instagram', url: 'https://instagram.com/dentonsandwich', icon: 'fa-instagram' },
+            { label: 'TikTok', url: 'https://tiktok.com/@dentonsandwich', icon: 'fa-tiktok' }
+        ];
+
+        // Re-render everything
+        renderLinks();
+        updatePreview();
+
+        // STOP & REVEAL
+        stopVibeLoader();
+
+        console.log("🛑 STOPPING ANIMATION");
+        console.log("🚀 REVEALING DASHBOARD");
+
+        const loadingSection = document.getElementById('loading-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+
+        // Force Hide Loading
+        if (loadingSection) {
+            loadingSection.style.display = 'none';
+            loadingSection.classList.add('hidden');
+        }
+
+        // Force Show Dashboard
+        if (dashboardSection) {
+            dashboardSection.style.display = 'block';
+            dashboardSection.classList.remove('hidden');
+
+            // Force scroll to top
+            window.scrollTo(0, 0);
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        } else {
+            console.error("❌ ERROR: #dashboard-section not found! Check your HTML IDs.");
+        }
+
+        triggerBentoReveal();
+
+        // Show success toast
+        showToast('Demo data served! 🥪', 'fa-rocket');
+
+    }, 2500); // 2.5s delay
 }
 
 // --- RENDER LINKS WITH NEW UI ---
@@ -776,9 +942,9 @@ function getMediaEmbed(url) {
 // --- QR CODE ---
 function downloadQRCode() {
     const url = document.getElementById('contactWebsite').value || document.getElementById('brandName').value;
-    if (!url) { 
+    if (!url) {
         showToast('Please enter a Website URL first!', 'fa-exclamation-circle');
-        return; 
+        return;
     }
 
     const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(url)}`;
@@ -890,7 +1056,9 @@ function getTemplate() {
         contactWebsite: getValue('contactWebsite', 'https://tayloredpetportraits.com'),
         notificationEmail: getValue('notificationEmail', 'leads@mybrand.com'),
         // Media
-        mediaUrl: getValue('mediaUrl', '')
+        mediaUrl: getValue('mediaUrl', ''),
+        // Theme
+        fontStyle: getValue('fontStyle', 'sans')
     };
 
     const linksHtml = links.map(l => `
@@ -899,6 +1067,21 @@ function getTemplate() {
             ${l.label}
         </a>
     `).join('');
+
+    // Theme Logic
+    let fontUrl = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap";
+    let fontFamily = "'Inter', sans-serif";
+
+    if (data.fontStyle === 'serif') {
+        fontUrl = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap";
+        fontFamily = "'Playfair Display', serif";
+    } else if (data.fontStyle === 'round') {
+        fontUrl = "https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap";
+        fontFamily = "'Quicksand', sans-serif";
+    } else if (data.fontStyle === 'mono') {
+        fontUrl = "https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap";
+        fontFamily = "'Space Mono', monospace";
+    }
 
     return `
 <!DOCTYPE html>
@@ -921,7 +1104,8 @@ function getTemplate() {
     <meta property="og:image" content="${data.logo}">
     <meta property="og:type" content="website">
 
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Intelligent Typography -->
+    <link href="${fontUrl}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -934,7 +1118,7 @@ function getTemplate() {
         }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
-            font-family: 'Quicksand', sans-serif;
+            font-family: ${fontFamily};
             background: linear-gradient(180deg, var(--bg-grad-1), var(--bg-grad-2));
             min-height: 100vh;
             display: flex;
@@ -1117,18 +1301,76 @@ function getTemplate() {
             }
         }
 
+        // 4. GENERATE ASSETS (Start Scrape)
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const input = document.getElementById('brandUrl');
+            let url = input.value.trim();
+
+            // The Fix:
+            if (!url.startsWith('http') && url.length > 0) {
+                url = 'https://' + url;
+                console.log("Auto-corrected URL to:", url);
+                input.value = url;
+            }
+            
+            if (!url) {
+                alert('Please enter a valid URL');
+                return;
+            }
+
+            // Show Vibe Loader using the Protocol sequence
+            startVibeLoader();
+
+            try {
+                // Call the Vercel/Next.js function
+                const brandData = await fetchBrandData(url);
+                
+                // Stop loader
+                stopVibeLoader();
+
+                // Populate text fields
+                populateDashboard(brandData);
+
+                // Populate the "Your Business DNA" Grid (new V3 Layout)
+                // (Assuming there are specific IDs for these cards in index.html now)
+                // If not, we might need a separate function 'populateDnaGrid(brandData)'
+                
+                // Render the Website Preview (Desktop + Mobile)
+                renderWebsite(brandData);
+
+                // Generate Ads
+                generateAdCampaigns(brandData);
+
+                // Switch Views (System Override Fix)
+                const loading = document.getElementById('loading-section') || document.getElementById('landing-page');
+                if (loading) loading.classList.add('hidden');
+                
+                const dashboard = document.getElementById('dashboard-section') || document.getElementById('dashboard');
+                if (dashboard) {
+                    dashboard.classList.remove('hidden');
+                    dashboard.scrollIntoView({ behavior: 'smooth' });
+                }
+
+                console.log('✅ PROTOCOL COMPLETE: Transitioning to Dashboard...');
+
+            } catch (error) {
+                stopVibeLoader();
+                console.error(error);
+                alert('Extraction Failed: ' + error.message);
+            }
+        });
         function generateVCard() {
             // vCard 3.0 Generation
-            const vcard = \`BEGIN:VCARD
-VERSION:3.0
-N:${data.contactName};;;
-FN:${data.contactName}
-ORG:${data.name}
-TITLE:${data.contactTitle}
-TEL;TYPE=CELL:${data.contactPhone}
-EMAIL;TYPE=WORK,INTERNET:${data.contactEmail}
-URL:${data.contactWebsite}
-END:VCARD\`;
+            const vcard = `BEGIN: VCARD
+    VERSION: 3.0
+    N:${ data.contactName };;;
+    FN:${ data.contactName }
+    ORG:${ data.name }
+    TITLE:${ data.contactTitle }
+    TEL; TYPE = CELL:${ data.contactPhone }
+    EMAIL; TYPE = WORK, INTERNET:${ data.contactEmail }
+    URL:${ data.contactWebsite }
+    END:VCARD\`;
 
             const blob = new Blob([vcard], { type: 'text/vcard' });
             const url = URL.createObjectURL(blob);
@@ -1215,14 +1457,14 @@ function showToast(message, icon = 'fa-check-circle') {
     const toast = document.getElementById('toast');
     const iconElement = toast.querySelector('i');
     const messageElement = toast.querySelector('span');
-    
+
     // Update icon class
     iconElement.className = `fa-solid ${icon}`;
     messageElement.textContent = message;
-    
+
     // Show toast
     toast.classList.add('show');
-    
+
     // Hide after 3 seconds
     setTimeout(() => {
         toast.classList.remove('show');
@@ -1232,32 +1474,32 @@ function showToast(message, icon = 'fa-check-circle') {
 // --- SMART SCALE PREVIEW ENGINE ---
 function applySmartScale() {
     if (window.innerWidth > 768) return; // Only on mobile
-    
+
     const previewWrapper = document.querySelector('.preview-wrapper');
     if (!previewWrapper) return;
-    
+
     const screenWidth = window.innerWidth;
     const phoneWidth = 380; // Phone mockup width
     const phoneHeight = 780; // Phone mockup height
     const padding = 40; // Total horizontal padding
-    
+
     // Calculate available space
     const availableWidth = screenWidth - padding;
     const availableHeight = window.innerHeight - 100; // Account for nav bar
-    
+
     // Calculate scale needed for width
     const scaleX = availableWidth / phoneWidth;
     // Calculate scale needed for height
     const scaleY = availableHeight / phoneHeight;
-    
+
     // Use the smaller scale to ensure it fits both dimensions
     let scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
-    
+
     // For very small screens (< 400px), apply minimum scale
     if (screenWidth < 400) {
         scale = Math.min(scale, 0.85);
     }
-    
+
     previewWrapper.style.transform = `scale(${scale})`;
 }
 
@@ -1275,7 +1517,7 @@ function initializeMobileTabs() {
         const preview = document.querySelector('.preview');
         const btnPreview = document.getElementById('btn-preview');
         const btnEditor = document.getElementById('btn-editor');
-        
+
         // Only run if editor exists (not in profile-only mode)
         if (editor && preview && btnPreview && btnEditor) {
             // Default to Editor Mode (show editor, hide preview)
@@ -1284,22 +1526,22 @@ function initializeMobileTabs() {
             btnEditor.classList.add('active');
             btnPreview.classList.remove('active');
         }
-        
+
         // Add click event listeners as backup (in addition to onclick)
         if (btnEditor) {
-            btnEditor.addEventListener('click', function(e) {
+            btnEditor.addEventListener('click', function (e) {
                 e.preventDefault();
                 switchTab('editor');
             });
         }
-        
+
         if (btnPreview) {
-            btnPreview.addEventListener('click', function(e) {
+            btnPreview.addEventListener('click', function (e) {
                 e.preventDefault();
                 switchTab('preview');
             });
         }
-        
+
         // Apply smart scale on initial load
         setTimeout(applySmartScale, 100);
     }
@@ -1309,6 +1551,6 @@ function initializeMobileTabs() {
 initializeMobileTabs();
 
 // Also run on window resize to handle orientation changes
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
     initializeMobileTabs();
 });

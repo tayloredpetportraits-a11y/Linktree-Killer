@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growth Weapon // Architect Core</title>
+
+    <!-- Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons: Lucide (via CDN for single file portability) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* --- DESIGN SYSTEM: MODERN LUXURY SAAS --- */
+        :root {
+            --bg-body: #ffffff;
+            --bg-surface: #f9fafb;
+            --bg-card: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --accent-color: #3b82f6;
+            /* Modern Blue */
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --border-light: #e5e7eb;
+            --font-display: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Inter', sans-serif;
+
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        /* --- GLOBAL RESET --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-display);
+            letter-spacing: -0.025em;
+            color: var(--text-primary);
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        /* --- LAYOUT --- */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .brand {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-icon {
+            color: var(--accent-color);
+        }
+
+        /* --- COMPONENTS: CARDS --- */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+            border-color: var(--accent-color);
+        }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 0.5rem;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: #000;
+            color: #fff;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            background-color: #222;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #fff;
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-surface);
+            border-color: #ccc;
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: #fff;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn-accent:hover {
+            opacity: 0.9;
+            box-shadow: 0 0 25px var(--accent-glow);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* --- FORMS --- */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        input[type="text"],
+        input[type="url"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: var(--bg-surface);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: #fff;
+        }
+
+        /* --- VIEWS --- */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- MISSION CONTROL --- */
+        .mission-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .mission-card {
+            cursor: pointer;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .mission-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.5rem;
+            color: var(--text-secondary);
+            transition: color 0.3s;
+        }
+
+        .mission-card:hover .mission-icon {
+            color: var(--accent-color);
+        }
+
+        /* --- AD PREVIEWS --- */
+        .ad-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .ad-card {
+            background: #fff;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ad-header {
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .ad-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #eee;
+            object-fit: cover;
+        }
+
+        .ad-body {
+            padding: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .ad-image {
+            width: 100%;
+            height: 250px;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 0.9rem;
+            object-fit: cover;
+        }
+
+        .ad-footer {
+            background: #f9fafb;
+            padding: 10px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        /* --- BIO BUILDER PREVIEW --- */
+        .phone-mockup {
+            width: 320px;
+            height: 640px;
+            border: 12px solid #333;
+            border-radius: 40px;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+            background: #fff;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .phone-screen {
+            height: 100%;
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        /* --- "LET HIM COOK" OVERLAY (MATRIX) --- */
+        #processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+        }
+
+        .matrix-text {
+            font-size: 4rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff41;
+            margin-bottom: 1rem;
+        }
+
+        .log-stream {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            height: 100px;
+            overflow: hidden;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- OVERLAY -->
+    <div id="processing-overlay">
+        <div class="matrix-text">PROCESSING...</div>
+        <div class="log-stream" id="logStream"></div>
+    </div>
+
+    <div class="app-container">
+
+        <!-- HEADER -->
+        <header>
+            <div class="brand">
+                <i data-lucide="zap" class="brand-icon"></i>
+                <span>GROWTH WEAPON v2.0</span>
+            </div>
+            <div>
+                <button class="btn btn-secondary text-sm" onclick="resetApp()">Reset System</button>
+            </div>
+        </header>
+
+        <!-- VIEW: MISSION CONTROL -->
+        <section id="view-mission-control" class="view-section active">
+            <h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 0.5rem;">Mission Control</h1>
+            <p class="text-muted" style="text-align: center; margin-bottom: 3rem;">Choose your growth vector.</p>
+
+            <div class="mission-grid">
+                <div class="card mission-card" onclick="goToPath('bio')">
+                    <i data-lucide="smartphone" class="mission-icon"></i>
+                    <h2>Build Bio Page</h2>
+                    <p class="text-muted mt-2">Create a mobile-first link site.</p>
+                </div>
+                <div class="card mission-card" onclick="goToPath('ads')">
+                    <i data-lucide="megaphone" class="mission-icon"></i>
+                    <h2>Generate Ads</h2>
+                    <p class="text-muted mt-2">Create ad creatives for a URL.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: BIO BUILDER -->
+        <section id="view-bio-builder" class="view-section">
+            <button class="btn btn-secondary text-sm mb-4" onclick="goHome()">← Back</button>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+                <!-- Editor -->
+                <div>
+                    <h2 class="mb-4">Configure Bio Site</h2>
+                    <div class="input-group">
+                        <label>Business / Brand Name</label>
+                        <input type="text" id="bioBrandName" placeholder="e.g. Taylored Pet Portraits"
+                            oninput="updateBioPreview()">
+                    </div>
+                    <div class="input-group">
+                        <label>Website / Domain (for Logo)</label>
+                        <input type="url" id="bioDomain" placeholder="e.g. tayloredpetportraits.com"
+                            onblur="fetchBrandData(this.value)">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Links</label>
+                        <div id="linkFields"></div>
+                        <button class="btn btn-secondary btn-full text-sm mt-2" onclick="addLinkField()">+ Add
+                            Link</button>
+                    </div>
+
+                    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-light);">
+                        <p class="text-muted text-sm mb-2">Ready to scale?</p>
+                        <button class="btn btn-accent btn-full" onclick="transferToAds()">✨ Generate Ads for this
+                            Page</button>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="phone-mockup">
+                    <div class="phone-screen" id="phoneScreen" style="background: #f3f4f6;">
+                        <img id="previewLogo" src=""
+                            style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; display: none;">
+                        <h2 id="previewName" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Your Name</h2>
+                        <p class="text-muted text-sm" style="margin-bottom: 2rem;">@username</p>
+                        <div id="previewLinks"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: AD GENERATOR -->
+        <section id="view-ad-generator" class="view-section">
+            <button class="btn btn-secondary text-sm mb-4" onclick="goHome()">← Back</button>
+
+            <div class="card" style="margin-bottom: 2rem;">
+                <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <label>Target URL to Promote</label>
+                        <input type="url" id="adTargetUrl" placeholder="https://..." value="">
+                    </div>
+                    <button class="btn btn-primary" onclick="runAdGen()">Generate Creatives</button>
+                </div>
+            </div>
+
+            <div id="adResultsArea" style="display: none;">
+                <h3 class="mb-4">Generated Assets</h3>
+                <div class="ad-grid" id="adGrid">
+                    <!-- Ads injected here -->
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- ICONS ---
+        lucide.createIcons();
+
+        // --- STATE & PERSISTENCE ---
+        const STATE_KEY = 'growth_weapon_state';
+        let appState = {
+            currentView: 'mission-control',
+            brandName: '',
+            domain: '',
+            links: [{ title: 'Visit Website', url: '#' }],
+            adsGenerated: []
+        };
+
+        function loadState() {
+            const saved = localStorage.getItem(STATE_KEY);
+            if (saved) {
+                try {
+                    appState = { ...appState, ...JSON.parse(saved) };
+                    // Restore inputs
+                    document.getElementById('bioBrandName').value = appState.brandName;
+                    document.getElementById('bioDomain').value = appState.domain;
+                    document.getElementById('adTargetUrl').value = appState.domain ? `https://${appState.domain}` : '';
+                    // Restore Links
+                    const linkContainer = document.getElementById('linkFields');
+                    linkContainer.innerHTML = '';
+                    appState.links.forEach(l => addLinkField(l.title, l.url));
+                    // Restore View
+                    switchView(appState.currentView);
+                    updateBioPreview();
+                } catch (e) { console.error('State load failed', e); }
+            } else {
+                 addLinkField(); // Default
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem(STATE_KEY, JSON.stringify(appState));
+        }
+
+        // --- NAVIGATION ---
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            appState.currentView = viewId;
+            saveState();
+        }
+
+        function goHome() { switchView('mission-control'); }
+        function goToPath(path) {
+            if (path === 'bio') switchView('bio-builder');
+            if (path === 'ads') switchView('ad-generator');
+        }
+
+        // --- BIO BUILDER LOGIC ---
+        function addLinkField(title = '', url = '') {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.style.marginBottom = '0.5rem';
+            div.style.display = 'flex';
+            div.style.gap = '0.5rem';
+            div.innerHTML = `
+                <input type="text" placeholder="Title" value="${title}" class="link-title-input" oninput="updateBioPreview()">
+                <input type="text" placeholder="URL" value="${url}" class="link-url-input" oninput="updateBioPreview()">
+            `;
+            document.getElementById('linkFields').appendChild(div);
+        }
+
+        function updateBioPreview() {
+            // Capture Inputs
+            const name = document.getElementById('bioBrandName').value || 'Your Name';
+            const domain = document.getElementById('bioDomain').value;
+            
+            // Capture Links
+            const linkInputs = document.querySelectorAll('#linkFields > div');
+            const links = [];
+            linkInputs.forEach(div => {
+                const t = div.querySelector('.link-title-input').value;
+                const u = div.querySelector('.link-url-input').value;
+                if(t) links.push({ title: t, url: u });
+            });
+
+            // Update State
+            appState.brandName = name;
+            appState.domain = domain;
+            appState.links = links;
+            saveState();
+
+            // Render Preview
+            document.getElementById('previewName').innerText = name;
+            const container = document.getElementById('previewLinks');
+            container.innerHTML = links.map(l => `
+                <div style="background: #fff; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; font-weight: 500; font-size: 0.9rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    ${l.title}
+                </div>
+            `).join('');
+            
+            // Brandfetch Logo
+            if(domain && domain.includes('.')) {
+                const img = document.getElementById('previewLogo');
+                img.src = `https://cdn.brandfetch.io/${domain}`;
+                img.style.display = 'inline-block';
+                img.onerror = () => { img.style.display = 'none'; };
+            }
+        }
+
+        function fetchBrandData(domain) {
+            if (!domain) return;
+            // In a real app, we'd fetch colors here via proxy.
+            // For now, we rely on the img src update in updateBioPreview
+            updateBioPreview();
+            document.getElementById('adTargetUrl').value = `https://${domain}`;
+        }
+
+        function transferToAds() {
+            switchView('ad-generator');
+            // Auto-fill url if present
+            if(appState.domain && !document.getElementById('adTargetUrl').value) {
+                document.getElementById('adTargetUrl').value = `https://${appState.domain}`;
+            }
+        }
+
+        // --- AD GENERATOR LOGIC ---
+        function runAdGen() {
+            const url = document.getElementById('adTargetUrl').value;
+            if(!url) return alert('Please enter a target URL');
+
+            const overlay = document.getElementById('processing-overlay');
+            const log = document.getElementById('logStream');
+            
+            // 1. Show Matrix Overlay
+            overlay.style.display = 'flex';
+            
+            // 2. Fake Logs
+            const logs = [
+                "INITIALIZING_VORTEX_ENGINE...",
+                `SCANNING_TARGET: ${url}`,
+                "EXTRACTING_BRAND_DNA...",
+                "ANALYZING_MARKET_VECTORS...",
+                "GENERATING_PSYCHOLOGICAL_HOOKS...",
+                "RENDERING_VISUALS_HV2...",
+                "OPTIMIZING_CTR_PROBABILITY...",
+                "FINALIZING_ASSETS..."
+            ];
+
+            let i = 0;
+            log.innerHTML = '';
+            const interval = setInterval(() => {
+                log.innerHTML += `> ${logs[i]}<br>`;
+                i++;
+                if(i >= logs.length) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        generateMockups(url);
+                    }, 800);
+                }
+            }, 400); // 3.2s total wait
+        }
+
+        function generateMockups(url) {
+            const brand = appState.brandName || "Brand Name";
+            const domain = appState.domain || "brand.com";
+            
+            // Fallback content if no scraped data
+            const cleanDomain = url.replace('https://','').replace('http://','').split('/')[0];
+            const logoSrc = `https://cdn.brandfetch.io/${cleanDomain}`;
+
+            const templates = [
+                {
+                    angle: "Direct / Value",
+                    copy: `Stop guessing. Start growing. 🚀\n\n${brand} is the easiest way to level up your workflow. Join 10,000+ others today.`,
+                    headline: `The #1 Tool for ${cleanDomain} users.`
+                },
+                {
+                    angle: "Story / Founder",
+                    copy: `"I wish I found this sooner."\n\nSee why industry leaders are switching to ${brand}. It's not just a tool, it's a superpower.`,
+                    headline: `Don't get left behind.`
+                },
+                {
+                    angle: "Urgency / Offer",
+                    copy: `⚠️ Last chance to lock in early access.\n\n${brand} is opening doors for new members. Don't miss out on the future of ${cleanDomain}.`,
+                    headline: `Access Closing Soon.`
+                }
+            ];
+
+            const grid = document.getElementById('adGrid');
+            grid.innerHTML = templates.map((t, idx) => `
+                <div class="ad-card">
+                    <div class="ad-header">
+                        <img src="${logoSrc}" class="ad-avatar" onerror="this.src='https://placehold.co/40x40'">
+                        <div>
+                            <div class="font-bold text-sm">${brand}</div>
+                            <div class="text-xs text-muted">Sponsored • 🌍</div>
+                        </div>
+                    </div>
+                    <div class="ad-body">${t.copy}</div>
+                    <img class="ad-image" src="https://placehold.co/600x400/111/fff?text=${encodeURIComponent(brand + ' ' + (idx+1))}">
+                    <div class="ad-footer">
+                        <span>${cleanDomain.toUpperCase()}</span>
+                        <span class="btn-secondary" style="padding: 2px 8px; border-radius:4px; font-size: 0.7rem;">LEARN MORE</span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('adResultsArea').style.display = 'block';
+        }
+
+        function resetApp() {
+            if(confirm("Factory Reset: Clear all data?")) {
+                localStorage.removeItem(STATE_KEY);
+                location.reload();
+            }
+        }
+
+        // Initialize
+        loadState();
+
+    </script>
+</body>
+
+</html>

@@ -387,7 +387,13 @@ export default function BuilderPage() {
                     <div className="flex-1 overflow-y-auto px-6 py-4">
 
                         {/* Magic Import Section */}
-                        <MagicImporter onImport={handleMagicImport} />
+                        <MagicImporter
+                            onImport={handleMagicImport}
+                            onStart={() => {
+                                console.log('🧹 Clearing stale data for new import...');
+                                setProfile(prev => ({ ...prev, links: [] }));
+                            }}
+                        />
                         {/* Branding Section */}
                         <details open className="border-b border-white/10 pb-4 mb-4">
                             <summary className="cursor-pointer font-bold text-xs text-gray-500 uppercase tracking-wider py-3 flex justify-between items-center hover:text-gray-300 transition">

@@ -15,6 +15,8 @@ const ScrapedProfileSchema = z.object({
     bio: z.string(),
     theme_color: z.string(),
     avatar_url: z.string().optional(),
+    fonts: z.array(z.string()),
+    brand_colors: z.array(z.string()),
     social_links: z.array(
         z.object({
             platform: z.enum(['instagram', 'tiktok', 'youtube', 'generic']),
@@ -39,12 +41,15 @@ export async function scrapeProfileFromUrl(url: string) {
                     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 Accept:
                     'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Cache-Control': 'no-cache',
             },
             signal: controller.signal,
         });
         clearTimeout(timeoutId);
 
         if (!response.ok) {
+            // If 403/404/500, throw specific error to catch below and fallback
             throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
         }
 
@@ -96,6 +101,8 @@ export async function scrapeProfileFromUrl(url: string) {
       - title: The display name (e.g., 'Taylor's Art').
       - bio: A witty, inviting bio (max 100 chars). If the existing description is boring, WRITE A BETTER ONE based on the vibe.
       - theme_color: The single most dominant brand hex color found (look for background colors, button colors, etc). Default to #000000 if unsure.
+      - brand_colors: An array of 3-5 distinct hex colors including the theme color, accents, and text colors.
+      - fonts: An array of 1-2 font family names used (e.g., "Inter", "Playfair Display"). Check inline styles or css links.
       - avatar_url: The best URL for a profile picture. Prioritize high-res. If you found an og:image, use that unless it looks like a generic banner.
       - social_links: An array of { platform: 'instagram' | 'tiktok' | 'youtube' | 'generic', url: string, label: string }. Look for hrefs in the <a> tags.
     `;
@@ -132,6 +139,26 @@ export async function scrapeProfileFromUrl(url: string) {
 
     } catch (error: any) {
         console.error('Magic Scrape Error:', error);
-        throw new Error(error.message || 'Failed to scrape profile');
+
+        // FALLBACK: Return partial success instead of crashing the UI
+        try {
+            const urlObj = new URL(url);
+            const hostname = urlObj.hostname.replace('www.', '');
+
+            // Return a safe fallback object
+            return {
+                username: hostname.split('.')[0], // e.g. 'shopify' from 'shopify.com'
+                title: hostname,
+                bio: "Could not auto-scrape details. Please fill manually.",
+                theme_color: "#000000",
+                brand_colors: ["#000000", "#ffffff"],
+                fonts: ["Inter"],
+                avatar_url: "",
+                social_links: []
+            };
+        } catch (e) {
+            // If even URL parsing fails (unlikely if valid url passed), throw original
+            throw new Error(error.message || 'Failed to scrape profile');
+        }
     }
 }

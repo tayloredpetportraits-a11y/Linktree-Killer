@@ -69,26 +69,37 @@ export default async function handler(req, res) {
             messages: [
                 {
                     role: 'system',
-                    content: `You are a branding expert. Analyze this website content (provided as markdown) and generate a JSON profile for a Linktree-style page. 
+                    content: `You are a branding expert. Analyze this website content (provided as markdown) and extract the brand identity for a Linktree-style profile.
 
 Return ONLY valid JSON with this exact structure:
 {
   "business_name": "Name of the entity",
-  "bio": "2-sentence summary of what they do",
-  "theme_color": "Dominant hex code #color",
+  "slogan": "Marketing tagline or 1-sentence value prop",
+  "bio": "2-sentence summary of what they do (use slogan if available)",
+  "brand_colors": ["#primary", "#secondary", "#background"],
+  "fonts": ["Font1", "Font2"],
+  "font_style": "One of: 'modern' (sans-serif), 'luxury' (serif), 'playful' (rounded/display), or 'tech' (mono)",
   "logo_url": "Absolute URL of logo if found, else null",
+  "socials": [
+    {"platform": "instagram", "url": "https://instagram.com/..."},
+    {"platform": "tiktok", "url": "https://tiktok.com/..."},
+    {"platform": "linkedin", "url": "https://linkedin.com/..."}
+  ],
   "links": [
     {"label": "Link label", "url": "https://url.com", "icon": "fa-globe"}
   ]
 }
 
-For icons, use Font Awesome icon names like: fa-globe, fa-instagram, fa-facebook, fa-envelope, fa-phone, fa-map-marker-alt, fa-shopping-cart.
-
-Generate up to 4 key links found.`
+Instructions:
+1. **Colors**: Find the top 3 dominant colors.
+2. **Socials**: rigorously search for Instagram, TikTok, LinkedIn, Twitter, YouTube links.
+3. **Fonts**: Guess the font style based on the vibe (Luxury=Serif, Tech=Mono, etc).
+4. **Icons**: Use Font Awesome icon names (e.g., fa-globe, fa-envelope).
+5. **Links**: Generate up to 5 key action links (Shop, Contact, Services).`
                 },
                 {
                     role: 'user',
-                    content: `Analyze this website markdown:\n\n${markdown.substring(0, 15000)}` // Truncate to avoid token limits if massive
+                    content: `Analyze this website markdown:\n\n${markdown.substring(0, 15000)}`
                 }
             ],
             temperature: 0.7,
@@ -113,19 +124,39 @@ Generate up to 4 key links found.`
             return res.status(500).json({ error: 'Invalid AI response format', data: jsonData });
         }
 
-        // Default Error Handling as per Directive
-        // (If we reached here, success is implied, but sticking to directive fallback format if needed)
+        // Process Colors
+        const colors = jsonData.brand_colors || [];
+        const primary = colors[0] || jsonData.theme_color || '#3b82f6';
+        const secondary = colors[1] || '#2563eb';
+        const background = colors[2] || '#eff6ff';
+
+        // Merge explicit socials into links if not already present
+        const links = jsonData.links || [];
+        if (jsonData.socials && Array.isArray(jsonData.socials)) {
+            jsonData.socials.forEach(soc => {
+                // Check if already in links to avoid dupes
+                if (!links.some(l => l.url.includes(soc.platform))) {
+                    links.push({
+                        label: soc.platform.charAt(0).toUpperCase() + soc.platform.slice(1),
+                        url: soc.url,
+                        icon: `fa-${soc.platform}` // fa-instagram, fa-tiktok etc.
+                    });
+                }
+            });
+        }
 
         return res.status(200).json({
             success: true,
             data: {
                 name: jsonData.business_name,
-                bio: jsonData.bio,
-                bg1: jsonData.theme_color || '#3b82f6',
-                bg2: jsonData.theme_color || '#2563eb', // Fallback gradient
-                btn: jsonData.theme_color || '#1d4ed8',
-                links: jsonData.links || [],
-                logo: jsonData.logo_url // Passing logo through even if frontend doesn't use it yet
+                bio: jsonData.slogan || jsonData.bio, // Prefer slogan for impact
+                bg1: background,
+                bg2: secondary,
+                btn: primary,
+                btnText: '#ffffff', // Default to white text on colored buttons
+                links: links,
+                logo: jsonData.logo_url,
+                fontStyle: jsonData.font_style || 'modern'
             }
         });
 

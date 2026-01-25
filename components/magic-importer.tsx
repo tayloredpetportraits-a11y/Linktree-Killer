@@ -6,6 +6,7 @@ import { scrapeProfileFromUrl, type ScrapedProfile } from '@/app/actions/magic-s
 
 interface MagicImporterProps {
     onImport: (data: ScrapedProfile) => void;
+    onStart?: () => void;
 }
 
 const LOADING_STEPS = [
@@ -17,7 +18,7 @@ const LOADING_STEPS = [
     'Constructing digital identity...',
 ];
 
-export function MagicImporter({ onImport }: MagicImporterProps) {
+export function MagicImporter({ onImport, onStart }: MagicImporterProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [url, setUrl] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +50,9 @@ export function MagicImporter({ onImport }: MagicImporterProps) {
             setError('Please enter a valid URL (start with http:// or https://)');
             return;
         }
+
+        // Notify parent that import is starting (to clear stale data)
+        if (onStart) onStart();
 
         setIsLoading(true);
         setError(null);

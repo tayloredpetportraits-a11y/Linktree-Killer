@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Sparkles, ArrowRight, Lock } from 'lucide-react'
 
 export default function LoginPage() {
     const router = useRouter()
@@ -24,8 +26,8 @@ export default function LoginPage() {
 
             if (signInError) throw signInError
 
-            // Redirect to builder on success
-            router.push('/builder')
+            // Redirect to the One-Click Hub (Home)
+            router.push('/')
             router.refresh()
         } catch (err) {
             console.error('Login error:', err)
@@ -36,79 +38,85 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-96 text-center border border-gray-100">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
-                        <i className="fa-solid fa-wand-magic-sparkles text-blue-600"></i>
-                        Taylored Link Builder
-                    </h1>
-                    <p className="text-sm text-gray-600">Sign in to continue</p>
-                </div>
-
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Email"
-                            required
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        />
-                    </div>
-                    <div>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            required
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        />
-                    </div>
-
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2 rounded-lg">
-                            <i className="fa-solid fa-exclamation-circle mr-2"></i>
-                            {error}
-                        </div>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        {loading ? (
-                            <>
-                                <i className="fa-solid fa-spinner fa-spin"></i>
-                                Signing in...
-                            </>
-                        ) : (
-                            <>
-                                <i className="fa-solid fa-arrow-right-to-bracket"></i>
-                                Log In
-                            </>
-                        )}
-                    </button>
-                </form>
-
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                    <p className="text-xs text-gray-500">
-                        Don't have an account?{' '}
-                        <a href="mailto:support@example.com" className="text-blue-600 hover:underline font-medium">
-                            Contact Support
-                        </a>
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-[#121212] font-sans selection:bg-[#d4e79e]/30 selection:text-[#d4e79e]">
+            {/* Background Ambience */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#d4e79e] rounded-full mix-blend-multiply filter blur-[128px] opacity-5 animate-blob"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-5 animate-blob animation-delay-2000"></div>
             </div>
 
-            {/* Font Awesome */}
-            <link
-                rel="stylesheet"
-                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-            />
+            <div className="relative z-10 w-full max-w-md p-8">
+                {/* Brand Header */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-tr from-[#d4e79e] to-emerald-400 mb-4 shadow-lg shadow-[#d4e79e]/20">
+                        <span className="font-bold text-xl text-[#121212]">T</span>
+                    </div>
+                    <h1 className="text-2xl font-bold text-white tracking-tight mb-2">
+                        Taylored AI Solutions Hub
+                    </h1>
+                    <p className="text-white/40 text-sm">
+                        Enterprise Access Portal
+                    </p>
+                </div>
+
+                {/* Login Card */}
+                <div className="bg-[#1E1E1E]/60 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-2xl">
+                    <form onSubmit={handleLogin} className="space-y-5">
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-white/50 uppercase tracking-wider ml-1">Email Address</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="name@company.com"
+                                required
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/20 focus:outline-none focus:border-[#d4e79e]/50 focus:ring-1 focus:ring-[#d4e79e]/50 transition-all font-light"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-white/50 uppercase tracking-wider ml-1">Password</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/20 focus:outline-none focus:border-[#d4e79e]/50 focus:ring-1 focus:ring-[#d4e79e]/50 transition-all font-light"
+                            />
+                        </div>
+
+                        {error && (
+                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-400 text-sm">
+                                <span className="mt-0.5">⚠️</span>
+                                <div>{error}</div>
+                            </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-[#d4e79e] hover:bg-[#c3d68b] text-[#121212] font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2 mt-2 shadow-[0_0_20px_rgba(212,231,158,0.2)]"
+                        >
+                            {loading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-[#121212]/30 border-t-[#121212] rounded-full animate-spin"></div>
+                                    <span className="opacity-80">Authenticating...</span>
+                                </>
+                            ) : (
+                                <>
+                                    Launch Hub <ArrowRight className="w-4 h-4" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+                </div>
+
+                {/* Footer */}
+                <p className="text-center mt-8 text-white/20 text-xs">
+                    Protected by <span className="text-white/40 font-medium">Taylored AI Security Protocol</span>.
+                </p>
+            </div>
         </div>
     )
 }

@@ -156,6 +156,26 @@ export default function PhonePreview({
         background: `radial-gradient(600px circle at ${cursorX}px ${cursorY}px, rgba(255,255,255,0.1), transparent 40%)`
     } : {}
 
+    // Helper to detect social media links
+    const getSocialIcon = (url: string) => {
+        if (!url) return null;
+        const lowerUrl = url.toLowerCase();
+        if (lowerUrl.includes('instagram.com')) return { icon: 'fa-instagram', color: '#E1306C', label: 'Instagram' };
+        if (lowerUrl.includes('tiktok.com')) return { icon: 'fa-tiktok', color: '#000000', label: 'TikTok' };
+        if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) return { icon: 'fa-x-twitter', color: '#000000', label: 'X' };
+        if (lowerUrl.includes('facebook.com')) return { icon: 'fa-facebook', color: '#1877F2', label: 'Facebook' };
+        if (lowerUrl.includes('youtube.com')) return { icon: 'fa-youtube', color: '#FF0000', label: 'YouTube' };
+        if (lowerUrl.includes('linkedin.com')) return { icon: 'fa-linkedin', color: '#0077B5', label: 'LinkedIn' };
+        if (lowerUrl.includes('twitch.tv')) return { icon: 'fa-twitch', color: '#9146FF', label: 'Twitch' };
+        if (lowerUrl.includes('github.com')) return { icon: 'fa-github', color: '#181717', label: 'GitHub' };
+        if (lowerUrl.includes('snapchat.com')) return { icon: 'fa-snapchat', color: '#FFFC00', label: 'Snapchat' }; // Yellow might need black icon? handled by text color usually, but here checking generic color property
+        if (lowerUrl.includes('whatsapp.com')) return { icon: 'fa-whatsapp', color: '#25D366', label: 'WhatsApp' };
+        if (lowerUrl.includes('t.me') || lowerUrl.includes('telegram.org')) return { icon: 'fa-telegram', color: '#0088cc', label: 'Telegram' };
+        if (lowerUrl.includes('spotify.com')) return { icon: 'fa-spotify', color: '#1DB954', label: 'Spotify' };
+        if (lowerUrl.includes('soundcloud.com')) return { icon: 'fa-soundcloud', color: '#ff5500', label: 'SoundCloud' };
+        return null;
+    };
+
     return (
         <div
             className="w-full h-full relative overflow-hidden"
@@ -274,10 +294,31 @@ export default function PhonePreview({
                         />
                     )}
 
-                    {/* Links - Glass + Glow Style */}
+                    {/* Social Icons Row (NEW) */}
+                    <div className="flex flex-wrap justify-center gap-4 mb-6">
+                        {links && links.filter(link => getSocialIcon(link.url)).map((link, index) => {
+                            const social = getSocialIcon(link.url);
+                            if (!social) return null;
+                            return (
+                                <a
+                                    key={`social-${index}`}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-lg transition-transform hover:scale-110 hover:shadow-xl"
+                                    style={{ color: social.color }}
+                                    title={link.title || social.label} // Fallback to title if needed
+                                >
+                                    <i className={`fa-brands ${social.icon} text-2xl`}></i>
+                                </a>
+                            );
+                        })}
+                    </div>
+
+                    {/* Links - Glass + Glow Style (Standard Links Only) */}
                     <div className="w-full space-y-3">
                         {links && links.length > 0 ? (
-                            links.map((link, index) => (
+                            links.filter(link => !getSocialIcon(link.url)).map((link, index) => (
                                 link.title && link.url ? (
                                     <a
                                         key={index}

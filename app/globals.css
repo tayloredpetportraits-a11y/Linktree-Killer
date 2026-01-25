@@ -22,3 +22,90 @@ details>summary i.fa-chevron-down {
 details[open]>summary i.fa-chevron-down {
     transform: rotate(180deg);
 }
+
+/* 🖊️ Liquid Chalk / Neon Marker Style */
+.liquid-marker {
+    font-family: 'Caveat', 'Patrick Hand', cursive;
+    color: #fb923c;
+    /* Tailwind Orange-400 (The Ink Color) */
+
+    /* The "Lightboard" Glow Effect */
+    filter: drop-shadow(0 0 2px rgba(251, 146, 60, 0.6)) drop-shadow(0 0 8px rgba(251, 146, 60, 0.3));
+
+    /* Make it look "Wet" and opaque */
+    opacity: 1;
+}
+
+/* Marker Stroke Physics */
+.liquid-stroke path {
+    stroke-linecap: round;
+    /* IMPORTANT: Felt tip look */
+    stroke-linejoin: round;
+    stroke: #fb923c;
+    /* subtle glow on the arrow too */
+    filter: drop-shadow(0 0 2px rgba(251, 146, 60, 0.6));
+}
+
+/* 🌟 Breathing Input Glow Animation */
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 10px rgba(212, 231, 158, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 25px rgba(212, 231, 158, 0.6), 0 0 40px rgba(212, 231, 158, 0.3);
+    }
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 3s infinite ease-in-out;
+}
+
+/* 🌊 LAVA LAMP BACKGROUND */
+@keyframes lava-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.lava-background {
+    /* Increased opacity from 0.08 to 0.25/0.2 for visibility */
+    background:
+        radial-gradient(circle at 15% 50%, rgba(212, 231, 158, 0.25) 0%, transparent 40%),
+        /* LIME (Brighter) */
+        radial-gradient(circle at 85% 30%, rgba(251, 146, 60, 0.2) 0%, transparent 40%),
+        /* ORANGE (Brighter) */
+        linear-gradient(to bottom, #0a0a0a, #1a1a1a);
+    /* Dark Base */
+    background-size: 180% 180%;
+    /* Zoomed in for bigger "blobs" */
+    animation: lava-flow 10s ease infinite;
+    /* Faster (10s vs 20s) */
+}
+
+/* 🖊️ LIQUID HANDWRITING */
+.liquid-text {
+    font-family: 'Caveat', cursive;
+    color: #fb923c;
+    /* Orange-400 */
+    filter: url(#liquid-ripple) drop-shadow(0 0 2px rgba(251, 146, 60, 0.8));
+}
+
+/* 🔥 FAT NEON ARROW */
+.neon-arrow {
+    color: #fb923c;
+    /* Orange-400 */
+    filter: url(#neon-glow);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
