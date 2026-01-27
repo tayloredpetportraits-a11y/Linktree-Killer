@@ -50,8 +50,8 @@ export default function BuilderPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [userId, setUserId] = useState<string | null>(null)
-
-    // Form state
+    const [username, setUsername] = useState('') // NEW: Claim URL State
+    const [showSuccessModal, setShowSuccessModal] = useState(false) // NEW: Success Modal State
     const [profile, setProfile] = useState<ProfileData>({
         title: '',
         description: '',
@@ -80,10 +80,47 @@ export default function BuilderPage() {
         gallery_images: []
     })
 
-    // Check authentication on mount
+    // 🔌 THE CONNECTION WIRE & AUTH BYPASS
     useEffect(() => {
-        checkAuth()
-    }, [])
+        const savedData = localStorage.getItem('taylored_brand_data');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                console.log("Found Brand DNA:", parsed);
+
+                // BYPASS AUTH & HYDRATE: Use local data if available
+                setProfile(prev => ({
+                    ...prev,
+                    ...parsed,
+                    // 🗺️ Map mismatched fields (Scraper -> Builder)
+                    description: parsed.bio || parsed.description || prev.description,
+                    // If we have brand_colors, use the first one as theme
+                    theme_color: parsed.brand_colors?.[0] || prev.theme_color,
+                    // Map social links if present
+                    links: (parsed.links && Array.isArray(parsed.links) && parsed.links.length > 0)
+                        ? parsed.links
+                        : (parsed.social_links ? parsed.social_links.map((l: any) => ({
+                            title: l.label || l.platform,
+                            url: l.url
+                        })) : prev.links)
+                }));
+
+                // 🚀 AUTO-GENERATE USERNAME if missing
+                if (parsed.title) {
+                    const generated = parsed.title.toLowerCase().replace(/\s+/g, '');
+                    setUsername(generated);
+                }
+
+                setIsAuthenticated(true); // Artificial auth for guest mode
+                setLoading(false);
+                return;
+            } catch (e) {
+                console.error("Data corruption", e);
+            }
+        }
+        // Fallback to normal auth if no local data
+        checkAuth();
+    }, []);
 
     async function checkAuth() {
         try {
@@ -145,6 +182,7 @@ export default function BuilderPage() {
             const updates = {
                 id: userId,
                 user_id: userId,
+                username: username, // Save the handle
                 ...profile,
                 updated_at: new Date().toISOString()
             }
@@ -155,7 +193,10 @@ export default function BuilderPage() {
 
             if (error) throw error
 
-            showToast('Changes Saved!', 'success')
+            if (error) throw error
+
+            // showToast('Changes Saved!', 'success') // Replaced by Modal
+            setShowSuccessModal(true); // 🎉 Show Success Modal
 
             // Preview auto-updates via React props - no manual refresh needed! 🎉
         } catch (error) {
@@ -340,6 +381,45 @@ export default function BuilderPage() {
 
     return (
         <>
+            {/* SUCCESS MODAL */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+                    <div className="bg-[#1E1E1E] border border-green-500/30 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400"></div>
+
+                        <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i className="fa-solid fa-rocket text-3xl text-green-500"></i>
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-white mb-2">Site Live!</h2>
+                        <p className="text-gray-400 mb-6">Your bio link is active and ready to share.</p>
+
+                        <div className="bg-black/50 border border-white/10 rounded-xl p-4 mb-8 flex items-center justify-between gap-3 group">
+                            <a
+                                href={`https://bio.tayloredsolutions.ai/${username}`}
+                                target="_blank"
+                                className="text-green-400 font-mono text-sm truncate hover:underline"
+                            >
+                                bio.tayloredsolutions.ai/{username}
+                            </a>
+                            <button
+                                onClick={() => navigator.clipboard.writeText(`https://bio.tayloredsolutions.ai/${username}`)}
+                                className="text-gray-500 hover:text-white transition-colors"
+                            >
+                                <i className="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => setShowSuccessModal(false)}
+                            className="w-full bg-white text-black font-bold py-3 rounded-xl hover:bg-gray-200 transition-colors"
+                        >
+                            Awesome
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Google Fonts */}
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
@@ -401,6 +481,24 @@ export default function BuilderPage() {
                                 <i className="fa-solid fa-chevron-down text-xs"></i>
                             </summary>
                             <div className="space-y-4 pl-1 mt-3">
+                                {/* Claim Your Link Input */}
+                                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                                    <label className="text-xs font-bold text-blue-200 block mb-2">
+                                        Claim Your Link 🚀
+                                    </label>
+                                    <div className="flex items-center bg-gray-900/50 rounded-lg border border-blue-500/20 overflow-hidden">
+                                        <span className="text-xs text-gray-500 pl-3 pr-1 bg-transparent truncate max-w-[140px]">
+                                            bio.tayloredsolutions.ai/
+                                        </span>
+                                        <input
+                                            type="text"
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                                            className="flex-1 p-2 bg-transparent text-sm text-white focus:outline-none placeholder-gray-600 font-bold"
+                                            placeholder="yourname"
+                                        />
+                                    </div>
+                                </div>
                                 <div>
                                     <label className="text-xs font-bold text-gray-300 block mb-1">
                                         Display Name

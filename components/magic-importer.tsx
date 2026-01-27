@@ -61,7 +61,7 @@ export function MagicImporter({ onImport, onStart }: MagicImporterProps) {
         try {
             const data = await scrapeProfileFromUrl(url);
             console.log('Magic Import Success:', data);
-            onImport(data);
+            onImport(data as any);
             setIsOpen(false);
             setUrl('');
         } catch (err: any) {

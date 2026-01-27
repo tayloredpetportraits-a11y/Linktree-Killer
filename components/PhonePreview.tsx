@@ -4,6 +4,7 @@ import React from 'react'
 import LivingBackground from './LivingBackground'
 import CompareSlider from './CompareSlider'
 import NewsletterForm from './NewsletterForm'
+import { PATTERNS } from '@/app/builder/patterns'
 
 interface Link {
     title: string
@@ -17,20 +18,21 @@ interface PhonePreviewProps {
     background_image: string
     background_type: 'mesh' | 'video'
     video_background_url: string
-    font_style: 'modern' | 'elegant' | 'brutal'  // NEW: Typography Engine
+    font_style: 'modern' | 'elegant' | 'brutal'
     theme_color: string
-    accent_color: string  // NEW: Living Gradients secondary color
+    accent_color: string
     animation_speed: 'slow' | 'medium' | 'fast'
     animation_type: 'drift' | 'pulse' | 'swirl' | 'lava'
-    texture_overlay: 'none' | 'noise' | 'grid' | 'lines'  // NEW: Texture overlays
-    enable_spotlight: boolean  // NEW: Cursor spotlight effect
+    texture_overlay: 'none' | 'noise' | 'grid' | 'lines'
+    enable_spotlight: boolean
     lead_gen_enabled: boolean
-    newsletter_active?: boolean  // NEW: Newsletter signup enabled
-    newsletter_heading?: string  // NEW: Newsletter heading text
-    profile_id?: string  // NEW: Profile ID for linking subscribers
+    newsletter_active?: boolean
+    newsletter_heading?: string
+    profile_id?: string
     links: Link[]
     social_spotlight_url?: string
     showcase?: { before: string; after: string }
+    activePattern?: string
 }
 
 export default function PhonePreview({
@@ -40,26 +42,25 @@ export default function PhonePreview({
     background_image,
     background_type,
     video_background_url,
-    font_style,  // NEW
+    font_style,
     theme_color,
-    accent_color,  // NEW
+    accent_color,
     animation_speed,
     animation_type,
-    texture_overlay,  // NEW
-    enable_spotlight,  // NEW
+    texture_overlay,
+    enable_spotlight,
     lead_gen_enabled,
-    newsletter_active,  // NEW
-    newsletter_heading,  // NEW
-    profile_id,  // NEW
+    newsletter_active,
+    newsletter_heading,
+    profile_id,
     links,
     social_spotlight_url,
-    showcase
+    showcase,
+    activePattern = 'none'
 }: PhonePreviewProps) {
-    // State for cursor tracking (for spotlight effect)
     const [cursorX, setCursorX] = React.useState(0)
     const [cursorY, setCursorY] = React.useState(0)
 
-    // Track mouse/touch position for spotlight
     React.useEffect(() => {
         if (!enable_spotlight) return
 
@@ -84,7 +85,6 @@ export default function PhonePreview({
         }
     }, [enable_spotlight])
 
-    // Helper function to convert hex color to rgba with alpha
     const hexToRgba = (hex: string, alpha: number) => {
         const r = parseInt(hex.slice(1, 3), 16)
         const g = parseInt(hex.slice(3, 5), 16)
@@ -92,7 +92,6 @@ export default function PhonePreview({
         return `rgba(${r}, ${g}, ${b}, ${alpha})`
     }
 
-    // Get font family based on selected font style
     const getFontFamily = (style: 'modern' | 'elegant' | 'brutal') => {
         switch (style) {
             case 'modern':
@@ -104,25 +103,21 @@ export default function PhonePreview({
         }
     }
 
-    // Generate texture overlay styles based on selection
     const getTextureStyle = (texture: 'none' | 'noise' | 'grid' | 'lines'): React.CSSProperties => {
         switch (texture) {
             case 'noise':
-                // Base64 noise pattern
                 return {
                     backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
                     opacity: 0.2,
-                    mixBlendMode: 'overlay' as const,
+                    mixBlendMode: 'overlay',
                 }
             case 'grid':
-                // Radial gradient dot pattern
                 return {
                     backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)',
                     backgroundSize: '20px 20px',
                     opacity: 0.3,
                 }
             case 'lines':
-                // Repeating linear-gradient TV scanlines
                 return {
                     backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px)',
                     backgroundSize: '100% 2px',
@@ -133,30 +128,10 @@ export default function PhonePreview({
         }
     }
 
-    // Generate complementary colors for mesh gradient
-    const getMeshColors = (baseColor: string) => {
-        // Extract RGB from hex
-        const r = parseInt(baseColor.slice(1, 3), 16)
-        const g = parseInt(baseColor.slice(3, 5), 16)
-        const b = parseInt(baseColor.slice(5, 7), 16)
-
-        // Create 3 color variations
-        return [
-            baseColor,
-            `rgb(${Math.min(r + 40, 255)}, ${Math.max(g - 20, 0)}, ${Math.min(b + 60, 255)})`,
-            `rgb(${Math.max(r - 30, 0)}, ${Math.min(g + 50, 255)}, ${Math.max(b - 40, 0)})`,
-            `rgb(${Math.min(r + 20, 255)}, ${Math.min(g + 30, 255)}, ${Math.min(b + 80, 255)})`
-        ]
-    }
-
-    const meshColors = getMeshColors(theme_color || '#3b82f6')
-
-    // Spotlight background style
     const spotlightStyle: React.CSSProperties = enable_spotlight ? {
         background: `radial-gradient(600px circle at ${cursorX}px ${cursorY}px, rgba(255,255,255,0.1), transparent 40%)`
     } : {}
 
-    // Helper to detect social media links
     const getSocialIcon = (url: string) => {
         if (!url) return null;
         const lowerUrl = url.toLowerCase();
@@ -168,7 +143,7 @@ export default function PhonePreview({
         if (lowerUrl.includes('linkedin.com')) return { icon: 'fa-linkedin', color: '#0077B5', label: 'LinkedIn' };
         if (lowerUrl.includes('twitch.tv')) return { icon: 'fa-twitch', color: '#9146FF', label: 'Twitch' };
         if (lowerUrl.includes('github.com')) return { icon: 'fa-github', color: '#181717', label: 'GitHub' };
-        if (lowerUrl.includes('snapchat.com')) return { icon: 'fa-snapchat', color: '#FFFC00', label: 'Snapchat' }; // Yellow might need black icon? handled by text color usually, but here checking generic color property
+        if (lowerUrl.includes('snapchat.com')) return { icon: 'fa-snapchat', color: '#FFFC00', label: 'Snapchat' };
         if (lowerUrl.includes('whatsapp.com')) return { icon: 'fa-whatsapp', color: '#25D366', label: 'WhatsApp' };
         if (lowerUrl.includes('t.me') || lowerUrl.includes('telegram.org')) return { icon: 'fa-telegram', color: '#0088cc', label: 'Telegram' };
         if (lowerUrl.includes('spotify.com')) return { icon: 'fa-spotify', color: '#1DB954', label: 'Spotify' };
@@ -184,10 +159,9 @@ export default function PhonePreview({
                 ...spotlightStyle
             }}
         >
-            {/* BACKGROUND LAYER - Behind everything */}
+            {/* BACKGROUND LAYER */}
             <div className="absolute inset-0 z-0">
                 {background_type === 'mesh' ? (
-                    /* Living Gradients Background */
                     <>
                         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
                         <LivingBackground
@@ -196,11 +170,9 @@ export default function PhonePreview({
                             animationSpeed={animation_speed}
                             animationType={animation_type}
                         />
-                        {/* Backdrop blur overlay for readability */}
                         <div className="absolute inset-0 backdrop-blur-sm" />
                     </>
                 ) : (
-                    /* Video Background */
                     <>
                         {video_background_url && (
                             <video
@@ -212,13 +184,25 @@ export default function PhonePreview({
                                 className="absolute inset-0 w-full h-full object-cover"
                             />
                         )}
-                        {/* Dark overlay for text readability */}
                         <div className="absolute inset-0 bg-black/40" />
                     </>
                 )}
             </div>
 
-            {/* TEXTURE OVERLAY - Above background, below content */}
+            {/* CONTEXT-AWARE PATTERN OVERLAY */}
+            {activePattern !== 'none' && PATTERNS[activePattern as keyof typeof PATTERNS] && (
+                <div
+                    className="absolute inset-0 z-[5] pointer-events-none"
+                    style={{
+                        backgroundImage: PATTERNS[activePattern as keyof typeof PATTERNS],
+                        backgroundBlendMode: 'overlay',
+                        opacity: 0.05,
+                        backgroundRepeat: 'repeat'
+                    }}
+                />
+            )}
+
+            {/* TEXTURE OVERLAY */}
             {texture_overlay !== 'none' && (
                 <div
                     className="absolute inset-0 z-0 pointer-events-none"
@@ -226,9 +210,8 @@ export default function PhonePreview({
                 />
             )}
 
-            {/* CONTENT LAYER - Above background */}
+            {/* CONTENT LAYER */}
             <div className="relative z-10 w-full h-full flex flex-col overflow-y-auto pt-16">
-                {/* Profile Section */}
                 <div className="flex flex-col items-center px-6 pb-8">
                     {/* Avatar */}
                     <div className="w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl overflow-hidden bg-white/10 backdrop-blur-md flex items-center justify-center mb-4">
@@ -261,7 +244,7 @@ export default function PhonePreview({
                         </button>
                     )}
 
-                    {/* Showcase Slider - Before/After Comparison */}
+                    {/* Showcase Slider */}
                     {showcase && showcase.before && showcase.after && (
                         <div className="w-full mb-6">
                             <CompareSlider
@@ -285,7 +268,7 @@ export default function PhonePreview({
                         </div>
                     )}
 
-                    {/* Newsletter Signup Form - NEW! */}
+                    {/* Newsletter */}
                     {newsletter_active && profile_id && (
                         <NewsletterForm
                             heading={newsletter_heading || 'Join my newsletter'}
@@ -294,7 +277,7 @@ export default function PhonePreview({
                         />
                     )}
 
-                    {/* Social Icons Row (NEW) */}
+                    {/* Social Icons */}
                     <div className="flex flex-wrap justify-center gap-4 mb-6">
                         {links && links.filter(link => getSocialIcon(link.url)).map((link, index) => {
                             const social = getSocialIcon(link.url);
@@ -307,7 +290,7 @@ export default function PhonePreview({
                                     rel="noopener noreferrer"
                                     className="w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-lg transition-transform hover:scale-110 hover:shadow-xl"
                                     style={{ color: social.color }}
-                                    title={link.title || social.label} // Fallback to title if needed
+                                    title={link.title || social.label}
                                 >
                                     <i className={`fa-brands ${social.icon} text-2xl`}></i>
                                 </a>
@@ -315,7 +298,7 @@ export default function PhonePreview({
                         })}
                     </div>
 
-                    {/* Links - Glass + Glow Style (Standard Links Only) */}
+                    {/* Links */}
                     <div className="w-full space-y-3">
                         {links && links.length > 0 ? (
                             links.filter(link => !getSocialIcon(link.url)).map((link, index) => (
@@ -351,7 +334,6 @@ export default function PhonePreview({
                 </div>
             </div>
 
-            {/* CSS Animation for blob movement */}
             <style jsx>{`
                 @keyframes blob {
                     0%, 100% {

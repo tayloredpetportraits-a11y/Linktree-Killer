@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles, ChevronDown, Smartphone, Palette, Type, Fingerprint } from 'lucide-react';
 import { scrapeProfileFromUrl } from '@/app/actions/magic-scrape';
@@ -11,6 +12,7 @@ import AdCampaignGenerator from '@/components/hub/AdCampaignGenerator';
 // --- HYBRID DNA INTERFACE (STORY MODE) ---
 
 export default function Home() {
+    const router = useRouter();
     const [url, setUrl] = useState('');
     const [isScanning, setIsScanning] = useState(false);
     const [scanComplete, setScanComplete] = useState(false);
@@ -104,6 +106,13 @@ export default function Home() {
                     setError('Request timed out. Please try again.');
                 }
             }, 30000);
+        }
+    };
+
+    const handleLaunch = () => {
+        if (brandData) {
+            localStorage.setItem('taylored_brand_data', JSON.stringify(brandData));
+            router.push('/builder');
         }
     };
 
@@ -301,9 +310,9 @@ export default function Home() {
 
                                     {/* LEFT: PHONE PREVIEW (Sticky) */}
                                     <div className="lg:sticky lg:top-32 flex justify-center">
-                                        <div className="relative group">
+                                        <div className="relative group" onClick={handleLaunch}>
                                             <div className="absolute -inset-4 bg-[#FFAD7A] rounded-[3rem] blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                                            <div className="relative transform transition-transform duration-500 hover:scale-[1.02] hover:-rotate-1">
+                                            <div className="relative transform transition-transform duration-500 hover:scale-[1.02] hover:-rotate-1 cursor-pointer">
                                                 {/* Reusing BioLinkBuilder but wrapping it to isolate the phone visual if possible, 
                                                     or just rendering it. The component might have its own layout. 
                                                     Let's use the component but constrain it. */}
