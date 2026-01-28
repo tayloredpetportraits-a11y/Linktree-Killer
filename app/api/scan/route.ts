@@ -10,7 +10,8 @@ function extractLinks($: any) {
 
     $('a').each((_: any, element: any) => {
         const href = $(element).attr('href');
-        const text = $(element).text().trim().toLowerCase();
+        const text = $(element).text().trim(); // Keep case for label
+        const textLower = text.toLowerCase();
 
         if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
 
@@ -23,7 +24,7 @@ function extractLinks($: any) {
 
         const urlLower = fullUrl.toLowerCase();
         let type = '';
-        let label = '';
+        let label = text || 'Link'; // Default label
 
         // RULE A: Social Media (Strict Domain Match)
         if (urlLower.includes('instagram.com')) { type = 'instagram'; label = 'Instagram'; }
@@ -44,13 +45,23 @@ function extractLinks($: any) {
             urlLower.includes('fresha.com')
         ) {
             type = 'booking';
-            label = 'Book Now';
+            label = text || 'Book Now';
         }
 
-        // RULE C: Generic Booking (Text Match)
-        else if (text.includes('book') || text.includes('schedule') || text.includes('appointment')) {
+        // RULE C: Shopify Stores (Product/Collection Detection)
+        else if (
+            urlLower.includes('/products/') ||
+            urlLower.includes('/collections/') ||
+            urlLower.includes('/pages/')
+        ) {
+            type = 'shop'; // Use 'shop' type or map to 'booking' if you want them red
+            label = text || 'Shop Now';
+        }
+
+        // RULE D: Generic Booking (Text Match)
+        else if (textLower.includes('book') || textLower.includes('schedule') || textLower.includes('appointment')) {
             type = 'booking';
-            label = 'Book Now';
+            label = text || 'Book Now';
         }
 
         // Add to list if valid and unique
@@ -93,7 +104,13 @@ export async function POST(request: Request) {
                 const fcResponse = await fetch('https://api.firecrawl.dev/v0/scrape', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${firecrawlKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: targetUrl, pageOptions: { onlyMainContent: false } })
+                    body: JSON.stringify({
+                        url: targetUrl,
+                        pageOptions: {
+                            onlyMainContent: false,
+                            waitFor: 5000 // Give Shopify sites time to hydrate
+                        }
+                    })
                 });
 
                 if (fcResponse.ok) {
