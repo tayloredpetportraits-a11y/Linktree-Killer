@@ -55,7 +55,7 @@ function extractLinks($: any) {
             urlLower.includes('/pages/')
         ) {
             type = 'shop'; // Use 'shop' type or map to 'booking' if you want them red
-            label = text || 'Shop Now';
+            label = text || 'Order Now';
         }
 
         // RULE D: Generic Booking (Text Match)

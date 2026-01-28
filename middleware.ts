@@ -12,6 +12,7 @@ export function middleware(request: NextRequest) {
     const isMainDomain = mainDomains.some(domain => hostname.includes(domain));
 
     // 3. TRAFFIC CONTROL
+    // 🔓 PUBLIC ACCESS: Main Domain is always open (No Auth Check)
     if (isMainDomain) {
         // If it's the main site, let them pass normally (to /builder, /api, etc.)
         return NextResponse.next();

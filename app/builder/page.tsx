@@ -111,31 +111,39 @@ export default function BuilderPage() {
                     setUsername(generated);
                 }
 
-                setIsAuthenticated(true); // Artificial auth for guest mode
-                setLoading(false);
-                return;
+                // Continue to check real auth status
             } catch (e) {
                 console.error("Data corruption", e);
             }
         }
-        // Fallback to normal auth if no local data
-        checkAuth();
+
+        // Check real auth status (allow/suppress redirect if we have local data)
+        checkAuth(!!savedData);
     }, []);
 
-    async function checkAuth() {
+    async function checkAuth(allowGuest = false) {
         try {
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
+                console.log("✅ User authenticated:", user.id);
                 setIsAuthenticated(true)
                 setUserId(user.id)
-                await loadProfile(user.id)
+                // If we didn't hydrate from local, load from DB
+                // If we DID hydrate from local, we keep that data (it's fresher/imported)
+                if (!allowGuest) {
+                    await loadProfile(user.id)
+                }
             } else {
-                // Redirect to Next.js login page
-                window.location.href = '/login'
+                if (allowGuest) {
+                    console.log("⚠️ Guest Mode active (No session)");
+                    setIsAuthenticated(true) // Guest Mode
+                } else {
+                    window.location.href = '/login'
+                }
             }
         } catch (error) {
             console.error('Auth check failed:', error)
-            alert('Authentication error: ' + (error as Error).message)
+            if (!allowGuest) alert('Authentication error: ' + (error as Error).message)
         } finally {
             setLoading(false)
         }
@@ -178,6 +186,22 @@ export default function BuilderPage() {
 
     async function saveProfile() {
         setSaving(true)
+
+        // 🔒 Auth Guard with Recovery
+        if (!userId) {
+            console.log("⚠️ No user ID found. Redirecting to login...");
+            // Save draft to localStorage so it persists after login
+            localStorage.setItem('taylored_brand_data', JSON.stringify(profile));
+
+            showToast('Please log in to save! Redirecting...', 'error');
+            setTimeout(() => {
+                // Determine base URL to redirect back to builder
+                window.location.href = '/login?next=/builder';
+            }, 1500);
+            setSaving(false);
+            return;
+        }
+
         try {
             const updates = {
                 id: userId,
