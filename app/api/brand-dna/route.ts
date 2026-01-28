@@ -4,15 +4,15 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import * as cheerio from 'cheerio';
 
-// Hunter Schema v2 - Distinguishes "Brochure" from "Register"
+// Hunter Schema v3 - Smart CTA Button Detection
 const BrandDNASchema = z.object({
     businessName: z.string().min(1, 'Business name is required'),
     tagline: z.string().default(''),
-    industry: z.enum(['Salon', 'Restaurant', 'Service', 'General']),
+    industry: z.enum(['Salon', 'Restaurant', 'Service', 'General', 'E-commerce']),
     vibe: z.enum(['Luxury', 'Industrial', 'Boho', 'Minimalist', 'Casual', 'High Energy']),
     colors: z.object({
-        primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color'),
-        secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color'),
+        primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').or(z.literal('')).transform(v => v || '#000000'),
+        secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').or(z.literal('')).transform(v => v || '#FFAD7A'),
     }),
     description: z.string().max(150, 'Description must be 150 chars or less'),
     services: z.array(z.string()).min(1, 'At least one service is required'),
@@ -26,6 +26,12 @@ const BrandDNASchema = z.object({
         instagram: z.string().url().or(z.literal('')).optional(),
         facebook: z.string().url().or(z.literal('')).optional(),
     }),
+    // NEW: Auto-detected CTA buttons from the website
+    cta_buttons: z.array(z.object({
+        title: z.string().min(1, 'Button title required'),
+        url: z.string().url('Button URL must be valid'),
+        type: z.enum(['primary', 'secondary']).default('secondary'),
+    })).default([]),
     voice_setup: z.object({
         tone: z.string().min(1, 'Voice tone is required'),
         welcome_message: z.string().min(1, 'Welcome message is required'),
@@ -34,14 +40,36 @@ const BrandDNASchema = z.object({
 
 type BrandDNA = z.infer<typeof BrandDNASchema>;
 
-// Waterfall Strategy System Prompt - Stage 1 Enhanced Hunter
-const BRAND_STRATEGIST_PROMPT = `You are a Brand DNA Architect and Data Hunter.
-Analyze the website content (Markdown) AND its structure to extract the brand identity.
+// Waterfall Strategy System Prompt - Stage 2 Smart CTA Detection
+const BRAND_STRATEGIST_PROMPT = `You are a Brand DNA Architect and Smart CTA Hunter.
+Analyze the website content (Markdown) AND its structure to extract the brand identity AND detect call-to-action buttons.
 
 CRITICAL: You must use a "Waterfall" approach to find contact info and links.
 1. **Search JSON-LD:** Look for a <script type="application/ld+json"> block. Trust data found here over visible text for phone, address, and social links (under "sameAs").
 2. **Search Footer & Contact Sections:** Look for links in the footer or pages named "Contact".
 3. **Infer from Text:** Only if the above fail, try to find phone numbers or handles in the plain text.
+
+🎯 **NEW: SMART CTA BUTTON DETECTION**
+Detect 2-4 primary call-to-action buttons based on industry:
+
+**Salon/Spa:**
+- Look for "Book Now", "Schedule Appointment", "Reserve", "Book Online"
+- Common platforms: Squarespace Scheduling, Acuity, Vagaro, Square Appointments
+- Primary button = Booking link
+
+**Restaurant/Food:**
+- Look for "Order Online", "View Menu", "Reserve Table", "Order Pickup"
+- Common platforms: Toast, Square, DoorDash, UberEats, OpenTable
+- Primary button = Order/Reserve link
+
+**E-commerce:**
+- Look for "Shop Now", "Browse Products", "View Collection", "Order Now"
+- Common platforms: Shopify, WooCommerce, Square Online
+- Primary button = Shop/Products link
+
+**Service Business:**
+- Look for "Get Quote", "Contact Us", "Request Service", "Learn More"
+- Primary button = Contact/Quote form
 
 IMPORTANT: If you cannot find a field, return an empty string "" (NOT null). Never return null values.
 
@@ -49,7 +77,7 @@ JSON SCHEMA:
 {
   "businessName": "String",
   "tagline": "String (Catchy & Short)",
-  "industry": "Salon" | "Restaurant" | "Service" | "General",
+  "industry": "Salon" | "Restaurant" | "Service" | "General" | "E-commerce",
   "vibe": "Luxury" | "Industrial" | "Boho" | "Minimalist" | "Casual" | "High Energy",
   "colors": {
       "primary": "Hex Code (Best guess from logo/header)",
@@ -62,6 +90,13 @@ JSON SCHEMA:
       "instagram": "Full URL to Instagram profile (empty string if not found)",
       "facebook": "Full URL to Facebook profile (empty string if not found)"
   },
+  "cta_buttons": [
+      {
+          "title": "Button text (e.g. 'Book Now', 'Order Online')",
+          "url": "Full URL to the action (booking page, menu, shop, etc.)",
+          "type": "primary" (for main CTA) or "secondary" (for supporting CTAs)
+      }
+  ],
   "contact": {
       "phone": "String (e.g. +1-555-555-5555, empty string if not found)",
       "address": "String (Full Address, empty string if not found)",
@@ -70,7 +105,7 @@ JSON SCHEMA:
   "voice_setup": {
       "tone": "Friendly" | "Professional" | "Energetic",
       "welcome_message": "A perfect 1-sentence phone greeting."
-  }
+      }
 }`;
 
 // Helper: Extract JSON-LD structured data
@@ -134,6 +169,80 @@ function extractFooterLinks(html: string): { socials: Record<string, string>; re
     });
 
     return { socials, reviews };
+}
+
+// Helper: Extract CTA buttons from HTML based on industry
+function extractCTAButtons(html: string, industry: string): { title: string; url: string; type: string }[] {
+    const $ = cheerio.load(html);
+    const buttons: { title: string; url: string; type: string }[] = [];
+
+    // Define industry-specific keywords
+    const keywords: Record<string, string[]> = {
+        'Salon': ['book now', 'schedule', 'appointment', 'reserve', 'book online', 'book appointment'],
+        'Restaurant': ['order online', 'order now', 'view menu', 'reserve', 'delivery', 'pickup'],
+        'E-commerce': ['shop now', 'browse', 'products', 'collection', 'store', 'buy now'],
+        'Service': ['get quote', 'contact', 'request', 'learn more', 'get started'],
+        'General': ['learn more', 'contact', 'get started'],
+    };
+
+    const industryKeywords = keywords[industry] || keywords['General'];
+
+    // Search for buttons and links with CTA keywords
+    $('a, button').each((_, element) => {
+        const $el = $(element);
+        const text = $el.text().trim().toLowerCase();
+        const href = $el.attr('href') || '';
+
+        // Skip empty or anchor-only links
+        if (!href || href.startsWith('#') || href === '/' || href === '') return;
+
+        // Check if text matches any industry keywords
+        const matchedKeyword = industryKeywords.find(keyword => text.includes(keyword));
+
+        if (matchedKeyword) {
+            // Determine if this is a primary CTA (usually first match)
+            const isPrimary = buttons.length === 0;
+
+            // Make URL absolute if relative
+            let absoluteUrl = href;
+            if (href.startsWith('/')) {
+                // Would need base URL - for now, skip relative URLs
+                return;
+            }
+
+            buttons.push({
+                title: $el.text().trim(),
+                url: absoluteUrl,
+                type: isPrimary ? 'primary' : 'secondary',
+            });
+        }
+    });
+
+    // Also check for common booking platform URLs
+    const bookingPlatforms = [
+        { pattern: /acuity-scheduling|squarespace\.com.*scheduling/, title: 'Book Appointment' },
+        { pattern: /vagaro\.com/, title: 'Book Now' },
+        { pattern: /square\.site.*appointments/, title: 'Schedule Appointment' },
+        { pattern: /toast\.com|toasttab/, title: 'Order Online' },
+        { pattern: /shopify\.com|myshopify\.com/, title: 'Shop Now' },
+        { pattern: /opentable\.com/, title: 'Reserve Table' },
+    ];
+
+    $('a[href]').each((_, element) => {
+        const href = $(element).attr('href') || '';
+        const matchedPlatform = bookingPlatforms.find(p => p.pattern.test(href));
+
+        if (matchedPlatform && !buttons.some(b => b.url === href)) {
+            buttons.push({
+                title: $(element).text().trim() || matchedPlatform.title,
+                url: href,
+                type: buttons.length === 0 ? 'primary' : 'secondary',
+            });
+        }
+    });
+
+    // Limit to 4 buttons max
+    return buttons.slice(0, 4);
 }
 
 // Helper: Extract colors from image using GPT-4o Vision
@@ -271,6 +380,14 @@ export async function POST(req: NextRequest) {
             dataSources.push('socials');
         }
 
+        // Step 4.5: Extract CTA buttons (NEW - preliminary detection)
+        // We'll do a preliminary extraction here and let AI refine it
+        const preliminaryCTAs = extractCTAButtons(rawHtml, 'General'); // Start with General, AI will refine
+        if (preliminaryCTAs.length > 0) {
+            dataSources.push('cta-buttons');
+            console.log(`🎯 Found ${preliminaryCTAs.length} preliminary CTA buttons`);
+        }
+
         // Step 5: Extract colors from logo using Vision API
         let visionColors: { primary: string; secondary: string } | null = null;
         const logoUrl = ogTags.image || ogTags.logo;
@@ -291,6 +408,7 @@ export async function POST(req: NextRequest) {
             openGraph: ogTags,
             visionColors,
             extractedSocials: socials, // Instagram/Facebook for links object
+            preliminaryCTAs, // Initial CTA button detection for AI refinement
         };
 
         let extractedData: BrandDNA;
