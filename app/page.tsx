@@ -43,10 +43,45 @@ export default function Home() {
         setIsScanning(true);
 
         try {
-            console.log('📡 Attempting to scrape:', targetUrl);
-            const data = await scrapeProfileFromUrl(targetUrl);
-            setBrandData(data);
-            // MatrixOverlay handles the wait UI
+            console.log('📡 Calling Brand DNA API:', targetUrl);
+
+            // Call the new /api/brand-dna endpoint with CTA detection
+            const response = await fetch('/api/brand-dna', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: targetUrl }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`API returned ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message || 'Brand DNA extraction failed');
+            }
+
+            // Transform Brand DNA response to match UI expectations
+            const transformedData = {
+                username: result.dna.businessName.toLowerCase().replace(/\s+/g, ''),
+                title: result.dna.businessName,
+                bio: result.dna.description,
+                theme_color: result.dna.colors.primary,
+                brand_colors: [result.dna.colors.primary, result.dna.colors.secondary],
+                fonts: ['Inter'], // Default for now
+                avatar_url: '', // Will be added later
+                social_links: result.dna.cta_buttons.map((btn: any) => ({
+                    platform: 'generic' as const,
+                    url: btn.url,
+                    label: btn.title
+                })),
+                // NEW: Pass full DNA data for Builder integration
+                dna: result.dna
+            };
+
+            console.log('✅ Brand DNA extracted:', transformedData);
+            setBrandData(transformedData);
         } catch (err: any) {
             console.error('⚠️ API Failed. Activating Simulation Mode...', err);
 
