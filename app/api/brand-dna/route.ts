@@ -450,6 +450,8 @@ export async function POST(req: NextRequest) {
             console.log(`🎯 Found ${preliminaryCTAs.length} preliminary CTA buttons`);
         }
 
+        // Step 7 (Optional): Vision API for Color Extraction from Logo
+        let visionColors: { primary: string; secondary: string } | null = null;
         if (logoUrl) {
             visionColors = await extractColorsFromImage(logoUrl, openaiKey);
             if (visionColors) {
